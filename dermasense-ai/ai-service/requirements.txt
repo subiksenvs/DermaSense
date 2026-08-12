@@ -1,0 +1,10 @@
+fastapi==0.110.0
+uvicorn==0.27.1
+pydantic==2.6.3
+numpy==1.26.4
+opencv-python-headless==4.9.0.80
+pillow==10.2.0
+python-multipart==0.0.9
+# PyTorch / TensorFlow placeholder
+# torch==2.2.1
+# torchvision==0.17.1
