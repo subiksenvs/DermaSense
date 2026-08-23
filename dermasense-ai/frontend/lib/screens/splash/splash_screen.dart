@@ -118,10 +118,19 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                           ),
                         ],
                       ),
-                      child: const Icon(
-                        Icons.spa_rounded,
-                        size: 55,
-                        color: Colors.white,
+                      child: Image.asset(
+                        'assets/images/logo.png',
+                        width: 55,
+                        height: 55,
+                        fit: BoxFit.contain,
+                        errorBuilder: (context, error, stackTrace) {
+                          // Fallback until the user adds logo.png to the folder
+                          return const Icon(
+                            Icons.spa_rounded,
+                            size: 55,
+                            color: Colors.white,
+                          );
+                        },
                       ),
                     ),
                   ),

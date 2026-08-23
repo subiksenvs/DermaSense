@@ -84,6 +84,19 @@ async def scan(image: UploadFile = File(...)):
         raise HTTPException(status_code=500, detail="Internal server error during scan")
 
 
+@app.get("/health")
+async def health_check():
+    return {"status": "healthy"}
+
+@app.get("/api/logs")
+async def get_logs():
+    import os
+    if os.path.exists("error.txt"):
+        with open("error.txt", "r") as f:
+            return {"error": f.read()}
+    return {"error": "No error.txt found"}
+
+
 @app.get("/")
 async def root():
     """Serve the demo web UI."""
