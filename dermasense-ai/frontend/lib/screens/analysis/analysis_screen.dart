@@ -165,7 +165,7 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
                   Expanded(
                     child: OutlinedButton.icon(
                       icon: const Icon(Icons.camera_alt),
-                      label: const Text("Camera (Live)"),
+                      label: const Text("Camera"),
                       onPressed: _isAnalyzing ? null : () {
                         Navigator.push(
                           context,
