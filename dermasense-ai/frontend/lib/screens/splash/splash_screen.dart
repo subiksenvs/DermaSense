@@ -103,16 +103,26 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                     child: Container(
                       width: 110,
                       height: 110,
-                      decoration: const BoxDecoration(
-                        color: Colors.black,
+                      decoration: BoxDecoration(
                         shape: BoxShape.circle,
+                        gradient: const LinearGradient(
+                          colors: [AppTheme.primaryColor, Color(0xFF8E6CEF)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppTheme.primaryColor.withValues(alpha: 0.4),
+                            blurRadius: 40,
+                            spreadRadius: 10,
+                          ),
+                        ],
                       ),
                       child: Image.asset(
                         'assets/images/logo.png',
                         width: 55,
                         height: 55,
                         fit: BoxFit.contain,
-                        color: AppTheme.primaryColor,
                         errorBuilder: (context, error, stackTrace) {
                           // Fallback until the user adds logo.png to the folder
                           return const Icon(
