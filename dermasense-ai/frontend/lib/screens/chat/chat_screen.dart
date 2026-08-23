@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
@@ -27,7 +28,7 @@ class _ChatScreenState extends State<ChatScreen> {
     super.initState();
     _model = GenerativeModel(
       model: 'gemini-3.1-flash-lite',
-      apiKey: const String.fromEnvironment('GEMINI_API_KEY', defaultValue: ''),
+      apiKey: dotenv.env['GEMINI_API_KEY'] ?? '',
       systemInstruction: Content.system('You are the DermaSense AI Assistant, a helpful and knowledgeable assistant integrated into a skin health mobile app. Provide concise, friendly, and practical advice about skincare, routines, and products. Always remind users that you provide AI-assisted guidance, and for clinical concerns they should consult a dermatologist.'),
       generationConfig: GenerationConfig(
         maxOutputTokens: 300,
