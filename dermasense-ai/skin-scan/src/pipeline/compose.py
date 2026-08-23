@@ -62,7 +62,7 @@ def run_scan(img: np.ndarray) -> Dict:
         - regions: list[str]
     """
     # Preprocess
-    img_processed = preprocess(img, max_size=1024)
+    img_processed = preprocess(img, max_size=512)
 
     # Detect face landmarks
     detector = get_detector()

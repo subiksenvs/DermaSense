@@ -68,6 +68,11 @@ async def scan(image: UploadFile = File(...)):
 
         # Run scan pipeline
         result = run_scan(img_bgr)
+        
+        # Aggressive garbage collection to stay under Render's 512MB limit
+        import gc
+        gc.collect()
+        
         logger.info(f"Scan complete. Scores: {result['scores']}")
 
         return result
