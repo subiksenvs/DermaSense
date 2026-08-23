@@ -30,9 +30,17 @@ class _AppShellState extends State<AppShell> {
     return Scaffold(
       backgroundColor: AppTheme.backgroundDark,
       extendBody: true,
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _screens,
+      body: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 400),
+        switchInCurve: Curves.easeOut,
+        switchOutCurve: Curves.easeIn,
+        transitionBuilder: (child, animation) {
+          return FadeTransition(opacity: animation, child: child);
+        },
+        child: Container(
+          key: ValueKey<int>(_currentIndex),
+          child: _screens[_currentIndex],
+        ),
       ),
       bottomNavigationBar: SafeArea(
         child: Container(
@@ -86,9 +94,10 @@ class _AppShellState extends State<AppShell> {
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeOutQuint,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        width: 68,
         decoration: BoxDecoration(
           color: isSelected ? AppTheme.primaryColor.withValues(alpha: 0.15) : Colors.transparent,
-          borderRadius: BorderRadius.circular(30),
+          borderRadius: BorderRadius.circular(20),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
