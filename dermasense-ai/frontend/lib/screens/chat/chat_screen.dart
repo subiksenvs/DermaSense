@@ -28,7 +28,7 @@ class _ChatScreenState extends State<ChatScreen> {
     super.initState();
     _model = GenerativeModel(
       model: 'gemini-3.1-flash-lite',
-      apiKey: dotenv.env['GEMINI_API_KEY'] ?? '',
+      apiKey: dotenv.isInitialized ? (dotenv.env['GEMINI_API_KEY'] ?? '') : '',
       systemInstruction: Content.system('You are the DermaSense AI Assistant, a helpful and knowledgeable assistant integrated into a skin health mobile app. Provide concise, friendly, and practical advice about skincare, routines, and products. Always remind users that you provide AI-assisted guidance, and for clinical concerns they should consult a dermatologist.'),
       generationConfig: GenerationConfig(
         maxOutputTokens: 300,

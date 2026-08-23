@@ -13,11 +13,8 @@ class AnalysisService {
     if (envUrl.isNotEmpty) {
       return envUrl;
     }
-    // Fallback for emulator and local testing
-    if (!kIsWeb && Platform.isAndroid) {
-      return 'http://10.0.2.2:8000';
-    }
-    return 'http://localhost:8000';
+    // Fallback to production backend
+    return 'https://dermasense-twfo.onrender.com';
   }
 
   static Future<Map<String, dynamic>> analyzeSkin(Uint8List imageBytes, String filename) async {

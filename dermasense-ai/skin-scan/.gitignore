@@ -1,6 +1,7 @@
 # Python
 __pycache__/
 *.py[cod]
+*.task
 *$py.class
 *.so
 .Python
