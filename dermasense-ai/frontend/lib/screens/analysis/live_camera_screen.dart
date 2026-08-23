@@ -232,7 +232,7 @@ class _LiveCameraScreenState extends State<LiveCameraScreen>
             child: Column(
               children: [
                 Text(
-                  _isAnalyzing ? "Analyzing..." : "Align your face in the oval",
+                  _isAnalyzing ? "Analyzing..." : "",
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 18,
