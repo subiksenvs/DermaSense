@@ -12,6 +12,8 @@ class Product {
   final List<String> pros;
   final List<String> cons;
   final bool isSustainable;
+  final String imageUrl;
+  final String productUrl;
 
   Product({
     required this.id,
@@ -27,5 +29,7 @@ class Product {
     required this.pros,
     required this.cons,
     this.isSustainable = false,
+    required this.imageUrl,
+    required this.productUrl,
   });
 }

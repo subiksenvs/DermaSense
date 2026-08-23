@@ -17,28 +17,32 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final List<Map<String, dynamic>> onboardingData = [
     {
       "title": "Understand Your Skin",
-      "text": "Discover your skin's unique needs with our advanced AI analysis technology.",
+      "text":
+          "Discover your skin's unique needs with our advanced AI analysis technology.",
       "icon": Icons.face_retouching_natural_rounded,
       "color": AppTheme.primaryColor,
     },
     {
       "title": "AI-Assisted Analysis",
-      "text": "Get preliminary screening and detailed insights into your skin health.",
+      "text":
+          "Get preliminary screening and detailed insights into your skin health.",
       "icon": Icons.document_scanner_rounded,
       "color": AppTheme.secondaryColor,
     },
     {
       "title": "Personalized Care",
-      "text": "Receive custom skincare routines tailored specifically for your skin profile.",
+      "text":
+          "Receive custom skincare routines tailored specifically for your skin profile.",
       "icon": Icons.auto_awesome_mosaic_rounded,
       "color": AppTheme.errorColor,
     },
     {
       "title": "Track Your Progress",
-      "text": "Monitor your skin's improvement over time with our digital journal.",
+      "text":
+          "Monitor your skin's improvement over time with our digital journal.",
       "icon": Icons.insights_rounded,
       "color": AppTheme.successColor,
-    }
+    },
   ];
 
   @override
@@ -59,10 +63,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               height: 400,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: onboardingData[_currentPage]["color"].withValues(alpha: 0.15),
+                color: onboardingData[_currentPage]["color"].withValues(
+                  alpha: 0.15,
+                ),
                 boxShadow: [
                   BoxShadow(
-                    color: onboardingData[_currentPage]["color"].withValues(alpha: 0.25),
+                    color: onboardingData[_currentPage]["color"].withValues(
+                      alpha: 0.25,
+                    ),
                     blurRadius: 120,
                     spreadRadius: 100,
                   ),
@@ -70,13 +78,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               ),
             ),
           ),
-          
+
           SafeArea(
             child: Column(
               children: [
                 // Top section for skip button
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 16,
+                  ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
@@ -94,7 +105,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     ],
                   ),
                 ),
-                
+
                 // Page View
                 Expanded(
                   child: PageView.builder(
@@ -113,7 +124,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     ),
                   ),
                 ),
-                
+
                 // Bottom Glassmorphism Control Panel
                 ClipRRect(
                   child: BackdropFilter(
@@ -123,7 +134,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       decoration: BoxDecoration(
                         color: AppTheme.surfaceColor.withValues(alpha: 0.5),
                         border: Border(
-                          top: BorderSide(color: Colors.white.withValues(alpha: 0.1), width: 1),
+                          top: BorderSide(
+                            color: Colors.white.withValues(alpha: 0.1),
+                            width: 1,
+                          ),
                         ),
                       ),
                       child: Column(
@@ -144,15 +158,28 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(20),
                                 gradient: LinearGradient(
-                                  colors: _currentPage == onboardingData.length - 1
-                                      ? [AppTheme.primaryColor, AppTheme.secondaryColor]
-                                      : [AppTheme.primaryColor, AppTheme.primaryColor],
+                                  colors:
+                                      _currentPage == onboardingData.length - 1
+                                      ? [
+                                          AppTheme.primaryColor,
+                                          AppTheme.secondaryColor,
+                                        ]
+                                      : [
+                                          AppTheme.primaryColor,
+                                          AppTheme.primaryColor,
+                                        ],
                                 ),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: _currentPage == onboardingData.length - 1
-                                      ? AppTheme.secondaryColor.withValues(alpha: 0.4)
-                                      : AppTheme.primaryColor.withValues(alpha: 0.4),
+                                    color:
+                                        _currentPage ==
+                                            onboardingData.length - 1
+                                        ? AppTheme.secondaryColor.withValues(
+                                            alpha: 0.4,
+                                          )
+                                        : AppTheme.primaryColor.withValues(
+                                            alpha: 0.4,
+                                          ),
                                     blurRadius: 20,
                                     spreadRadius: 2,
                                     offset: const Offset(0, 8),
@@ -165,11 +192,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                   shadowColor: Colors.transparent,
                                 ),
                                 onPressed: () {
-                                  if (_currentPage == onboardingData.length - 1) {
+                                  if (_currentPage ==
+                                      onboardingData.length - 1) {
                                     _goToLogin();
                                   } else {
                                     _pageController.nextPage(
-                                      duration: const Duration(milliseconds: 500),
+                                      duration: const Duration(
+                                        milliseconds: 500,
+                                      ),
                                       curve: Curves.fastLinearToSlowEaseIn,
                                     );
                                   }
@@ -203,8 +233,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     Navigator.pushReplacement(
       context,
       PageRouteBuilder(
-        pageBuilder: (_, __, ___) => const LoginScreen(),
-        transitionsBuilder: (_, animation, __, child) {
+        pageBuilder: (_, _, _) => const LoginScreen(),
+        transitionsBuilder: (_, animation, _, child) {
           return FadeTransition(opacity: animation, child: child);
         },
       ),
@@ -223,9 +253,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             ? onboardingData[_currentPage]["color"]
             : Colors.white.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(3),
-        boxShadow: _currentPage == index ? [
-          BoxShadow(color: onboardingData[_currentPage]["color"].withValues(alpha: 0.5), blurRadius: 8)
-        ] : null,
+        boxShadow: _currentPage == index
+            ? [
+                BoxShadow(
+                  color: onboardingData[_currentPage]["color"].withValues(
+                    alpha: 0.5,
+                  ),
+                  blurRadius: 8,
+                ),
+              ]
+            : null,
       ),
     );
   }
@@ -255,7 +292,10 @@ class OnboardingContent extends StatelessWidget {
           height: 200,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            border: Border.all(color: accentColor.withValues(alpha: 0.5), width: 2),
+            border: Border.all(
+              color: accentColor.withValues(alpha: 0.5),
+              width: 2,
+            ),
             boxShadow: [
               BoxShadow(
                 color: accentColor.withValues(alpha: 0.2),
@@ -264,21 +304,15 @@ class OnboardingContent extends StatelessWidget {
               ),
             ],
           ),
-          child: Center(
-            child: Icon(
-              icon,
-              size: 80,
-              color: Colors.white,
-            ),
-          ),
+          child: Center(child: Icon(icon, size: 80, color: Colors.white)),
         ),
         const Spacer(flex: 1),
         Text(
           title,
           textAlign: TextAlign.center,
-          style: Theme.of(context).textTheme.displayMedium?.copyWith(
-                fontSize: 32,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.displayMedium?.copyWith(fontSize: 32),
         ),
         const SizedBox(height: 20),
         Padding(
@@ -286,10 +320,9 @@ class OnboardingContent extends StatelessWidget {
           child: Text(
             text,
             textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  fontSize: 16,
-                  height: 1.6,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(fontSize: 16, height: 1.6),
           ),
         ),
         const Spacer(flex: 2),

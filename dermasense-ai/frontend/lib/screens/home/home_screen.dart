@@ -1,7 +1,11 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../providers/skin_profile_provider.dart';
 import '../../theme/app_theme.dart';
 import '../analysis/analysis_screen.dart';
+import '../profile/profile_screen.dart';
+import '../../widgets/glass_card.dart';
 import '../routine/routine_screen.dart';
 import '../chat/chat_screen.dart';
 import '../doctors/doctors_screen.dart';
@@ -53,8 +57,9 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           
           SafeArea(
+            bottom: false,
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24.0),
+              padding: const EdgeInsets.only(left: 24.0, right: 24.0, top: 24.0, bottom: 120.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -70,7 +75,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             style: Theme.of(context).textTheme.bodyMedium,
                           ),
                           Text(
-                            "Sarah",
+                            context.watch<SkinProfileProvider>().profile.fullName.isEmpty 
+                              ? "User" 
+                              : context.watch<SkinProfileProvider>().profile.fullName,
                             style: Theme.of(context).textTheme.displayLarge?.copyWith(
                               fontSize: 32,
                               foreground: Paint()
@@ -81,21 +88,33 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ],
                       ),
-                      Container(
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppTheme.primaryColor.withValues(alpha: 0.3),
-                              blurRadius: 15,
-                              spreadRadius: 2,
-                            ),
-                          ],
-                        ),
-                        child: const CircleAvatar(
-                          radius: 26,
-                          backgroundColor: AppTheme.surfaceColor,
-                          backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=47'), // Premium placeholder
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const ProfileScreen()),
+                          );
+                        },
+                        child: Container(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.3), width: 2),
+                          ),
+                          child: Builder(
+                            builder: (context) {
+                              final profileImageUrl = context.watch<SkinProfileProvider>().profile.profileImageUrl;
+                              return CircleAvatar(
+                                radius: 26,
+                                backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.2),
+                                backgroundImage: profileImageUrl != null && profileImageUrl.isNotEmpty
+                                    ? NetworkImage(profileImageUrl)
+                                    : null,
+                                child: (profileImageUrl == null || profileImageUrl.isEmpty)
+                                    ? const Icon(Icons.person, color: AppTheme.primaryColor)
+                                    : null,
+                              );
+                            }
+                          ),
                         ),
                       )
                     ],
@@ -205,16 +224,16 @@ class _HomeScreenState extends State<HomeScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      _buildQuickAction(context, Icons.center_focus_strong_rounded, "Analyze", const Color(0xFF6B4EE6), () {
+                      _buildQuickAction(context, Icons.center_focus_strong_rounded, "Analyze", AppTheme.primaryColor, () {
                         Navigator.push(context, MaterialPageRoute(builder: (context) => const AnalysisScreen()));
                       }),
-                      _buildQuickAction(context, Icons.medical_information_rounded, "Consult", const Color(0xFF00F2FE), () {
+                      _buildQuickAction(context, Icons.medical_information_rounded, "Consult", AppTheme.secondaryColor, () {
                         Navigator.push(context, MaterialPageRoute(builder: (context) => const DoctorsScreen()));
                       }),
-                      _buildQuickAction(context, Icons.auto_awesome_mosaic_rounded, "Routine", const Color(0xFFFF4B4B), () {
+                      _buildQuickAction(context, Icons.auto_awesome_mosaic_rounded, "Routine", AppTheme.errorColor, () {
                         Navigator.push(context, MaterialPageRoute(builder: (context) => const RoutineScreen()));
                       }),
-                      _buildQuickAction(context, Icons.forum_rounded, "Assistant", const Color(0xFF00E676), () {
+                      _buildQuickAction(context, Icons.forum_rounded, "Assistant", AppTheme.successColor, () {
                         Navigator.push(context, MaterialPageRoute(builder: (context) => const ChatScreen()));
                       }),
                     ],
@@ -246,13 +265,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             Container(
                               padding: const EdgeInsets.all(16),
                               decoration: BoxDecoration(
-                                gradient: const LinearGradient(
-                                  colors: [Color(0xFF00F2FE), Color(0xFF4FACFE)],
-                                ),
+                                color: AppTheme.primaryColor.withValues(alpha: 0.2),
                                 shape: BoxShape.circle,
-                                boxShadow: [
-                                  BoxShadow(color: const Color(0xFF00F2FE).withValues(alpha: 0.4), blurRadius: 15, spreadRadius: 2),
-                                ],
                               ),
                               child: const Icon(
                                 Icons.water_drop_rounded,
@@ -292,43 +306,37 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildQuickAction(BuildContext context, IconData icon, String label, Color accentColor, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(24),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-              child: Container(
-                width: 70,
-                height: 70,
-                decoration: BoxDecoration(
-                  color: AppTheme.surfaceColor.withValues(alpha: 0.5),
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-                ),
-                child: Center(
-                  child: Icon(
-                    icon,
-                    color: accentColor,
-                    size: 32,
-                  ),
-                ),
+    return Column(
+      children: [
+        GlassCard(
+          padding: EdgeInsets.zero,
+          borderRadius: 20,
+          onTap: onTap,
+          child: Container(
+            width: 70,
+            height: 70,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              gradient: LinearGradient(
+                colors: [accentColor.withValues(alpha: 0.3), accentColor.withValues(alpha: 0.05)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
               ),
             ),
+            child: Icon(icon, color: accentColor, size: 30),
           ),
-          const SizedBox(height: 12),
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: Colors.white,
-            ),
-          )
-        ],
-      ),
+        ),
+        const SizedBox(height: 12),
+        Text(
+          label,
+          style: TextStyle(
+            color: Colors.white.withValues(alpha: 0.9),
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.3,
+          ),
+        )
+      ],
     );
   }
 }

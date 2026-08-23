@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import '../onboarding/onboarding_screen.dart';
+import '../home/app_shell.dart';
 import '../../theme/app_theme.dart';
+import '../../providers/auth_provider.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -52,10 +55,19 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       // Add a slight delay after animation completes before navigating
       Future.delayed(const Duration(milliseconds: 600), () {
         if (mounted) {
+          final authProvider = Provider.of<AuthProvider>(context, listen: false);
+          
+          if (authProvider.isLoading) {
+             // wait for loading to finish, or assume it's fast enough. We'll just navigate based on current state.
+          }
+          
+          // TEMPORARY: Bypass authentication for testing
+          final nextScreen = const AppShell();
+          
           Navigator.of(context).pushReplacement(
             PageRouteBuilder(
               transitionDuration: const Duration(milliseconds: 800),
-              pageBuilder: (_, __, ___) => const OnboardingScreen(),
+              pageBuilder: (_, __, ___) => nextScreen,
               transitionsBuilder: (_, animation, __, child) {
                 return FadeTransition(opacity: animation, child: child);
               },
@@ -75,70 +87,76 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1A1A1A), // Dark premium background similar to Netflix
+      backgroundColor: const Color(0xFF121212), // Deep premium dark background
       body: Center(
         child: AnimatedBuilder(
           animation: _animationController,
           builder: (context, child) {
-            return Transform.scale(
-              scale: _scaleAnimation.value,
-              child: Opacity(
-                opacity: _opacityAnimation.value,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    // A premium glowing icon or logo representation
-                    Container(
-                      width: 100,
-                      height: 100,
+            return Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Only scale and fade the logo
+                Transform.scale(
+                  scale: _scaleAnimation.value,
+                  child: Opacity(
+                    opacity: _opacityAnimation.value,
+                    child: Container(
+                      width: 110,
+                      height: 110,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         gradient: const LinearGradient(
-                          colors: [AppTheme.primaryColor, Color(0xFF6B4EE6)],
+                          colors: [AppTheme.primaryColor, Color(0xFF8E6CEF)],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: AppTheme.primaryColor.withValues(alpha: 0.5),
-                            blurRadius: 30,
-                            spreadRadius: 5,
+                            color: AppTheme.primaryColor.withValues(alpha: 0.4),
+                            blurRadius: 40,
+                            spreadRadius: 10,
                           ),
                         ],
                       ),
                       child: const Icon(
                         Icons.spa_rounded,
-                        size: 50,
+                        size: 55,
                         color: Colors.white,
                       ),
                     ),
-                    const SizedBox(height: 24),
-                    // DermaSense Brand Name
-                    const Text(
-                      'DermaSense',
-                      style: TextStyle(
-                        fontFamily: 'Inter',
-                        fontSize: 36,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.white,
-                        letterSpacing: 1.5,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    // AI Subtitle
-                    Text(
-                      'INTELLIGENT SKINCARE',
-                      style: TextStyle(
-                        fontFamily: 'Inter',
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white.withValues(alpha: 0.6),
-                        letterSpacing: 4.0,
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
-              ),
+                const SizedBox(height: 32),
+                // Only fade the text, avoiding Transform.scale to prevent pixelation/shattering
+                Opacity(
+                  opacity: _opacityAnimation.value,
+                  child: const Column(
+                    children: [
+                      Text(
+                        'DermaSense',
+                        style: TextStyle(
+                          fontFamily: 'Inter',
+                          fontSize: 40,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.white,
+                          letterSpacing: 1.2,
+                        ),
+                      ),
+                      SizedBox(height: 8),
+                      Text(
+                        'INTELLIGENT SKINCARE',
+                        style: TextStyle(
+                          fontFamily: 'Inter',
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFFA0A0A0),
+                          letterSpacing: 4.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             );
           },
         ),

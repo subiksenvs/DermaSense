@@ -1,0 +1,11 @@
+Traceback (most recent call last):
+  File "C:\Users\Acer\Desktop\DermaSense\dermasense-ai\skin-scan\src\app\main.py", line 70, in scan
+    result = run_scan(img_bgr)
+  File "C:\Users\Acer\Desktop\DermaSense\dermasense-ai\skin-scan\src\pipeline\compose.py", line 68, in run_scan
+    detector = get_detector()
+  File "C:\Users\Acer\Desktop\DermaSense\dermasense-ai\skin-scan\src\pipeline\compose.py", line 48, in get_detector
+    _detector = FaceMeshDetector()
+  File "C:\Users\Acer\Desktop\DermaSense\dermasense-ai\skin-scan\src\pipeline\face_mesh.py", line 12, in __init__
+    self.mp_face_mesh = mp.solutions.face_mesh
+                        ^^^^^^^^^^^^
+AttributeError: module 'mediapipe' has no attribute 'solutions'

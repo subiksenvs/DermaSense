@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../providers/auth_provider.dart';
 import '../../providers/skin_profile_provider.dart';
 import '../home/app_shell.dart';
 
@@ -14,9 +15,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
   bool _obscurePassword = true;
   String? _selectedSkinType;
-  
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _ageController = TextEditingController();
+  bool _isLoading = false;
 
   final List<String> _skinTypes = [
     'Normal',
@@ -30,7 +33,47 @@ class _RegisterScreenState extends State<RegisterScreen> {
   void dispose() {
     _nameController.dispose();
     _emailController.dispose();
+    _passwordController.dispose();
+    _ageController.dispose();
     super.dispose();
+  }
+
+  Future<void> _register() async {
+    if (!_formKey.currentState!.validate()) return;
+    
+    setState(() => _isLoading = true);
+    
+    try {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      await authProvider.register(_emailController.text.trim(), _passwordController.text.trim());
+      
+      if (mounted) {
+        final profileProvider = context.read<SkinProfileProvider>();
+        final p = profileProvider.profile.copyWith(
+          fullName: _nameController.text.trim(),
+          email: _emailController.text.trim(),
+          age: int.tryParse(_ageController.text.trim()),
+          skinType: _selectedSkinType,
+        );
+        await profileProvider.updateProfile(p);
+        
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => const AppShell()),
+          (route) => false,
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
   }
 
   @override
@@ -79,6 +122,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
+                  controller: _passwordController,
                   obscureText: _obscurePassword,
                   decoration: InputDecoration(
                     labelText: "Password",
@@ -104,6 +148,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   children: [
                     Expanded(
                       child: TextFormField(
+                        controller: _ageController,
                         keyboardType: TextInputType.number,
                         decoration: const InputDecoration(
                           labelText: "Age",
@@ -137,26 +182,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: () {
-                      if (_formKey.currentState!.validate()) {
-                        final provider = context.read<SkinProfileProvider>();
-                        final p = provider.profile.copyWith(
-                          fullName: _nameController.text.trim(),
-                          email: _emailController.text.trim(),
-                          skinType: _selectedSkinType,
-                        );
-                        provider.updateProfile(p);
-                        
-                        Navigator.pushAndRemoveUntil(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const AppShell(),
-                          ),
-                          (route) => false,
-                        );
-                      }
-                    },
-                    child: const Text("Register"),
+                    onPressed: _isLoading ? null : _register,
+                    child: _isLoading 
+                        ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                        : const Text("Register"),
                   ),
                 ),
               ],

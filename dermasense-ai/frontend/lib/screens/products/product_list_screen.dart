@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../models/product.dart';
 import '../../repositories/product_repository.dart';
 import '../../providers/skin_profile_provider.dart';
@@ -110,21 +111,47 @@ class _ProductListScreenState extends State<ProductListScreen> {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                width: 80,
-                height: 80,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
+              // Product image from network
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: CachedNetworkImage(
+                  imageUrl: product.imageUrl,
+                  width: 80,
+                  height: 80,
+                  fit: BoxFit.cover,
+                  placeholder: (context, url) => Container(
+                    width: 80,
+                    height: 80,
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Center(
+                      child: SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                    ),
+                  ),
+                  errorWidget: (context, url, error) => Container(
+                    width: 80,
+                    height: 80,
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(Icons.shopping_bag, size: 40, color: Theme.of(context).colorScheme.primary),
+                  ),
                 ),
-                child: Icon(Icons.shopping_bag, size: 40, color: Theme.of(context).colorScheme.primary),
               ),
               const SizedBox(width: 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(product.brand, style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+                    Text(product.brand, style: TextStyle(color: Theme.of(context).colorScheme.secondary, fontSize: 12, fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 2),
                     Text(product.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                     const SizedBox(height: 8),
                     Row(
@@ -134,7 +161,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                         Row(
                           children: [
                             Icon(Icons.star, size: 14, color: Colors.orange.shade400),
-                            Text(product.rating.toString(), style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+                            Text(product.rating.toString(), style: TextStyle(fontSize: 12, color: Colors.grey.shade400)),
                           ],
                         ),
                       ],
@@ -171,11 +198,11 @@ class _ProductListScreenState extends State<ProductListScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.search_off, size: 64, color: Colors.grey.shade300),
+          Icon(Icons.search_off, size: 64, color: Colors.grey.shade600),
           const SizedBox(height: 16),
           const Text("No products found.", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
           const SizedBox(height: 8),
-          Text("Try adjusting your search or filters.", style: TextStyle(color: Colors.grey.shade600)),
+          Text("Try adjusting your search or filters.", style: TextStyle(color: Colors.grey.shade500)),
         ],
       ),
     );

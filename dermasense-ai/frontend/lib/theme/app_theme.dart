@@ -1,21 +1,39 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
-  // Deep Obsidian Dark Mode Colors
-  static const Color backgroundDark = Color(0xFF0A0A0E); // Deep space black
-  static const Color surfaceColor = Color(0xFF161622); // Translucent dark gray for glassmorphism
+  // Clean, High-Contrast Flat Design Colors (Spotify/Netflix Style)
+  static const Color backgroundDark = Color(0xFF121212); // Deep Spotify black
+  static const Color surfaceColor = Color(0xFF1E1E1E); // Elevated dark gray
 
-  // Vibrant Neon Accents
-  static const Color primaryColor = Color(0xFF6B4EE6); // Electric Violet
-  static const Color primaryLight = Color(0xFF8E71FF);
-  static const Color secondaryColor = Color(0xFF00F2FE); // Cyan Glow
-  static const Color errorColor = Color(0xFFFF4B4B); // Neon Red
-  static const Color successColor = Color(0xFF00E676); // Neon Green
+  // Premium Organic Skin-Tone Palette (Fair, Medium, Deep)
+  static const Color primaryColor = Color(0xFFC68B74); // Warm Caramel / Medium
+  static const Color primaryLight = Color(0xFFF1D1C3); // Soft Peach / Fair
+  static const Color secondaryColor = Color(0xFF5D3A29); // Deep Cocoa / Deep
+  static const Color errorColor = Color(0xFFD9534F); // Muted Coral Red
+  static const Color successColor = Color(0xFF81B29A); // Soft Sage Green
 
   // Text Colors
-  static const Color textPrimary = Color(0xFFFFFFFF); // Crisp White
-  static const Color textSecondary = Color(0xFFA0A4B8); // Slate Gray
+  static const Color textPrimary = Color(0xFFFFF6F3); // Warm Off-White
+  static const Color textSecondary = Color(0xFFBCAAA4); // Soft Taupe
+
+  // Gradients for UI
+  static const LinearGradient primaryGradient = LinearGradient(
+    colors: [
+      Color(0xFFE5B5A1),
+      Color(0xFFC68B74),
+      Color(0xFF8A5A44),
+    ], // Fair to Deep
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+
+  static const LinearGradient subtleGlassGradient = LinearGradient(
+    colors: [Color(0x1AFFFFFF), Color(0x05FFFFFF)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
 
   static ThemeData get darkTheme {
     return ThemeData(
@@ -31,39 +49,72 @@ class AppTheme {
         onSecondary: Colors.white,
         onSurface: textPrimary,
       ),
-      textTheme: GoogleFonts.outfitTextTheme().copyWith(
-        displayLarge: const TextStyle(color: textPrimary, fontWeight: FontWeight.w800, letterSpacing: -0.5),
-        displayMedium: const TextStyle(color: textPrimary, fontWeight: FontWeight.w800, letterSpacing: -0.5),
-        headlineLarge: const TextStyle(color: textPrimary, fontWeight: FontWeight.w700),
-        bodyLarge: const TextStyle(color: textPrimary, fontWeight: FontWeight.w400, letterSpacing: 0.2),
-        bodyMedium: const TextStyle(color: textSecondary, fontWeight: FontWeight.w400, letterSpacing: 0.2),
-      ),
+      textTheme: GoogleFonts.outfitTextTheme(ThemeData.dark().textTheme)
+          .copyWith(
+            displayLarge: const TextStyle(
+              color: textPrimary,
+              fontWeight: FontWeight.w800,
+              letterSpacing: -0.5,
+            ),
+            displayMedium: const TextStyle(
+              color: textPrimary,
+              fontWeight: FontWeight.w800,
+              letterSpacing: -0.5,
+            ),
+            headlineLarge: const TextStyle(
+              color: textPrimary,
+              fontWeight: FontWeight.w700,
+            ),
+            bodyLarge: const TextStyle(
+              color: textPrimary,
+              fontWeight: FontWeight.w400,
+              letterSpacing: 0.2,
+            ),
+            bodyMedium: const TextStyle(
+              color: textSecondary,
+              fontWeight: FontWeight.w400,
+              letterSpacing: 0.2,
+            ),
+          ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: primaryColor, // Base color, but we'll use containers for real gradients
+          backgroundColor: primaryColor,
           foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(12),
           ),
           padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 28),
-          elevation: 10,
-          shadowColor: primaryColor.withValues(alpha: 0.5),
+          elevation: 0, // No shadow
+          animationDuration: const Duration(milliseconds: 180),
+          overlayColor: primaryLight.withValues(alpha: 0.18),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: secondaryColor,
-          side: const BorderSide(color: secondaryColor, width: 2),
+          side: const BorderSide(color: secondaryColor, width: 1.5),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(12),
           ),
           padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 28),
+          animationDuration: const Duration(milliseconds: 180),
+          overlayColor: primaryColor.withValues(alpha: 0.14),
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: primaryLight,
+          animationDuration: const Duration(milliseconds: 180),
+          overlayColor: primaryColor.withValues(alpha: 0.14),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: surfaceColor.withValues(alpha: 0.5), // Glassy fill
-        contentPadding: const EdgeInsets.symmetric(vertical: 18, horizontal: 24),
+        contentPadding: const EdgeInsets.symmetric(
+          vertical: 18,
+          horizontal: 24,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(20),
           borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
@@ -82,13 +133,32 @@ class AppTheme {
         ),
         hintStyle: const TextStyle(color: textSecondary),
       ),
+      dropdownMenuTheme: DropdownMenuThemeData(
+        menuStyle: MenuStyle(
+          backgroundColor: WidgetStateProperty.all(surfaceColor),
+        ),
+      ),
+      canvasColor: surfaceColor,
       cardTheme: CardThemeData(
         color: surfaceColor.withValues(alpha: 0.7),
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(24),
-          side: BorderSide(color: Colors.white.withValues(alpha: 0.05), width: 1), // Subtle rim light
+          side: BorderSide(
+            color: Colors.white.withValues(alpha: 0.05),
+            width: 1,
+          ), // Subtle rim light
         ),
+      ),
+      splashFactory: InkSparkle.splashFactory,
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          TargetPlatform.android: FadeForwardsPageTransitionsBuilder(),
+          TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+          TargetPlatform.linux: FadeUpwardsPageTransitionsBuilder(),
+          TargetPlatform.macOS: CupertinoPageTransitionsBuilder(),
+          TargetPlatform.windows: FadeUpwardsPageTransitionsBuilder(),
+        },
       ),
       appBarTheme: const AppBarTheme(
         backgroundColor: Colors.transparent,

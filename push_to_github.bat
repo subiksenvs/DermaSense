@@ -46,11 +46,9 @@ echo.
 echo [INFO] Staging all changes...
 git add -A
 
-for /f "tokens=2 delims==" %%I in ('wmic os get localdatetime /value') do set DATETIME=%%I
-set DATESTAMP=%DATETIME:~0,4%-%DATETIME:~4,2%-%DATETIME:~6,2%
-set TIMESTAMP=%DATETIME:~8,2%:%DATETIME:~10,2%:%DATETIME:~12,2%
+for /f "tokens=*" %%a in ('powershell -Command "Get-Date -format 'yyyy-MM-dd HH:mm:ss'"') do set DATETIME=%%a
 
-set COMMIT_MSG=Update DermaSense - %DATESTAMP% %TIMESTAMP%
+set COMMIT_MSG=Update DermaSense - %DATETIME%
 
 echo [INFO] Committing: "%COMMIT_MSG%"
 git commit -m "%COMMIT_MSG%"

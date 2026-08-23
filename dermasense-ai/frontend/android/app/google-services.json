@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "509696574029",
+    "project_id": "dermasenseai-1dd95",
+    "storage_bucket": "dermasenseai-1dd95.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:509696574029:android:b487621330dfbecaf55204",
+        "android_client_info": {
+          "package_name": "com.ai.dermasense"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAMKXmNXjE9yysCyXNd-qeQhLzCqE0WaqI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:509696574029:android:062a5f1cb06c8b10f55204",
+        "android_client_info": {
+          "package_name": "com.example.dermasense"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAMKXmNXjE9yysCyXNd-qeQhLzCqE0WaqI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

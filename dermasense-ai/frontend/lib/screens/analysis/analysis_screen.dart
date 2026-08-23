@@ -1,8 +1,12 @@
 import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import '../../theme/app_theme.dart';
+import '../../widgets/glass_card.dart';
+import '../../widgets/animated_gradient_button.dart';
 import 'result_screen.dart';
+import 'live_camera_screen.dart';
+import '../../services/analysis_service.dart';
 
 class AnalysisScreen extends StatefulWidget {
   const AnalysisScreen({super.key});
@@ -33,28 +37,40 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
       _isAnalyzing = true;
     });
 
-    // Simulate AI Service call
-    await Future.delayed(const Duration(seconds: 3));
+    try {
+      final result = await AnalysisService.analyzeSkin(_imageData!, 'scan.jpg');
+      await AnalysisService.saveScanToHistory(result);
 
-    if (!mounted) return;
-    setState(() {
-      _isAnalyzing = false;
-    });
+      if (!mounted) return;
+      setState(() {
+        _isAnalyzing = false;
+      });
 
-    // Just wait for simulation
-    // History could be saved here in real life.
-
-    if (!mounted) return;
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const ResultScreen()),
-    );
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => ResultScreen(
+          scanResult: result,
+          originalImage: _imageData,
+        )),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isAnalyzing = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Skin Analysis")),
+      appBar: AppBar(
+        title: const Text("Skin Analysis"),
+        elevation: 0,
+      ),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
@@ -76,69 +92,63 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
               ),
               const SizedBox(height: 32),
               Expanded(
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.grey[200],
-                    borderRadius: BorderRadius.circular(24),
-                    border: Border.all(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.primary.withValues(alpha: 0.5),
-                      width: 2,
-                      style: BorderStyle.solid,
+                child: GlassCard(
+                  padding: EdgeInsets.zero,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(24),
                     ),
-                  ),
-                  child: _imageData == null
-                      ? Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.face_retouching_natural,
-                              size: 80,
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.primary.withValues(alpha: 0.5),
-                            ),
-                            const SizedBox(height: 16),
-                            const Text("No image selected"),
-                          ],
-                        )
-                      : Stack(
-                          fit: StackFit.expand,
-                          children: [
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(22),
-                              child: Image.memory(
-                                _imageData!,
-                                fit: BoxFit.cover,
+                    child: _imageData == null
+                        ? Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.face_retouching_natural,
+                                size: 80,
+                                color: AppTheme.primaryColor.withValues(alpha: 0.5),
                               ),
-                            ),
-                            if (_isAnalyzing)
-                              Container(
-                                decoration: BoxDecoration(
-                                  color: Colors.black54,
-                                  borderRadius: BorderRadius.circular(22),
+                              const SizedBox(height: 16),
+                              Text("No image selected", style: TextStyle(color: AppTheme.textSecondary)),
+                            ],
+                          )
+                        : Stack(
+                            fit: StackFit.expand,
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(24),
+                                child: Image.memory(
+                                  _imageData!,
+                                  fit: BoxFit.cover,
                                 ),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    const CircularProgressIndicator(
-                                      color: Colors.white,
-                                    ),
-                                    const SizedBox(height: 16),
-                                    Text(
-                                      "Analyzing your skin...",
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
+                              ),
+                              if (_isAnalyzing)
+                                Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.black.withValues(alpha: 0.7),
+                                    borderRadius: BorderRadius.circular(24),
+                                  ),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      const CircularProgressIndicator(
+                                        color: AppTheme.secondaryColor,
                                       ),
-                                    ),
-                                  ],
+                                      const SizedBox(height: 16),
+                                      Text(
+                                        "Analyzing your skin...",
+                                        style: TextStyle(
+                                          color: AppTheme.secondaryColor,
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                          letterSpacing: 0.5,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                          ],
-                        ),
+                            ],
+                          ),
+                  ),
                 ),
               ),
               const SizedBox(height: 32),
@@ -146,34 +156,35 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
                 children: [
                   Expanded(
                     child: OutlinedButton.icon(
-                      onPressed: _isAnalyzing
-                          ? null
-                          : () => _getImage(ImageSource.gallery),
                       icon: const Icon(Icons.photo_library),
                       label: const Text("Gallery"),
+                      onPressed: _isAnalyzing ? null : () => _getImage(ImageSource.gallery),
                     ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: _isAnalyzing
-                          ? null
-                          : () => _getImage(ImageSource.camera),
+                    child: OutlinedButton.icon(
                       icon: const Icon(Icons.camera_alt),
-                      label: const Text("Camera"),
+                      label: const Text("Camera (Live)"),
+                      onPressed: _isAnalyzing ? null : () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const LiveCameraScreen(),
+                          ),
+                        );
+                      },
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
-              if (_imageData != null)
-                ElevatedButton(
-                  onPressed: _isAnalyzing ? null : _startAnalysis,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).colorScheme.secondary,
-                  ),
-                  child: const Text("Analyze Image"),
-                ),
+              const SizedBox(height: 24),
+              AnimatedGradientButton(
+                text: "Scan Now",
+                icon: Icons.auto_awesome,
+                onPressed: _imageData == null ? () {} : _startAnalysis,
+                isLoading: _isAnalyzing,
+              ),
             ],
           ),
         ),

@@ -1,6 +1,6 @@
-import 'dart:convert';
+import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AnalysisRecord {
   final String id;
@@ -41,44 +41,73 @@ class AnalysisRecord {
 class HistoryProvider with ChangeNotifier {
   List<AnalysisRecord> _records = [];
   bool _isLoading = true;
+  String? _userId;
+  StreamSubscription? _subscription;
 
   List<AnalysisRecord> get records => _records;
   bool get isLoading => _isLoading;
 
   HistoryProvider() {
-    _loadHistory();
+    _isLoading = false;
   }
 
-  Future<void> _loadHistory() async {
-    _isLoading = true;
-    notifyListeners();
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final historyString = prefs.getString('analysis_history');
-      if (historyString != null) {
-        final List<dynamic> decoded = json.decode(historyString);
-        _records = decoded.map((e) => AnalysisRecord.fromJson(e)).toList();
-      }
-    } catch (e) {
-      debugPrint("Error loading history: $e");
-    } finally {
+  void updateUserId(String? newUserId) {
+    if (_userId == newUserId) return;
+    _userId = newUserId;
+    _subscription?.cancel();
+    
+    if (_userId != null) {
+      _loadHistory();
+    } else {
+      _records = [];
       _isLoading = false;
       notifyListeners();
     }
   }
 
-  Future<void> addRecord(AnalysisRecord record) async {
-    _records.insert(0, record);
+  void _loadHistory() {
+    _isLoading = true;
     notifyListeners();
-    _saveHistory();
+    
+    _subscription = FirebaseFirestore.instance
+        .collection('users')
+        .doc(_userId)
+        .collection('history')
+        .orderBy('date', descending: true)
+        .snapshots()
+        .listen((snapshot) {
+      _records = snapshot.docs.map((doc) => AnalysisRecord.fromJson(doc.data())).toList();
+      _isLoading = false;
+      notifyListeners();
+    }, onError: (e) {
+      debugPrint("Error loading history from Firestore: $e");
+      _isLoading = false;
+      notifyListeners();
+    });
   }
 
-  Future<void> _saveHistory() async {
+  Future<void> addRecord(AnalysisRecord record) async {
+    if (_userId == null) return;
+    
+    // We update local state immediately for fast UI
+    _records.insert(0, record);
+    notifyListeners();
+    
     try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('analysis_history', json.encode(_records.map((e) => e.toJson()).toList()));
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(_userId)
+          .collection('history')
+          .doc(record.id)
+          .set(record.toJson());
     } catch (e) {
-      debugPrint("Error saving history: $e");
+      debugPrint("Error saving history to Firestore: $e");
     }
+  }
+
+  @override
+  void dispose() {
+    _subscription?.cancel();
+    super.dispose();
   }
 }

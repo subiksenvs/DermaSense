@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../providers/auth_provider.dart';
 import 'register_screen.dart';
 import '../home/app_shell.dart';
 
@@ -11,7 +13,45 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
   bool _obscurePassword = true;
+  bool _isLoading = false;
+  
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _login() async {
+    if (!_formKey.currentState!.validate()) return;
+    
+    setState(() => _isLoading = true);
+    
+    try {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      await authProvider.signIn(_emailController.text.trim(), _passwordController.text.trim());
+      
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const AppShell()),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,6 +85,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 48),
                   TextFormField(
+                    controller: _emailController,
                     keyboardType: TextInputType.emailAddress,
                     decoration: const InputDecoration(
                       labelText: "Email",
@@ -59,6 +100,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
+                    controller: _passwordController,
                     obscureText: _obscurePassword,
                     decoration: InputDecoration(
                       labelText: "Password",
@@ -91,17 +133,10 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 24),
                   ElevatedButton(
-                    onPressed: () {
-                      if (_formKey.currentState!.validate()) {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const AppShell(),
-                          ),
-                        );
-                      }
-                    },
-                    child: const Text("Login"),
+                    onPressed: _isLoading ? null : _login,
+                    child: _isLoading 
+                        ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                        : const Text("Login"),
                   ),
                   const SizedBox(height: 24),
                   Row(

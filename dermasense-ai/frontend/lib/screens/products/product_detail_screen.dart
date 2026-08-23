@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../models/product.dart';
 import '../../providers/favorites_provider.dart';
 
@@ -8,6 +10,19 @@ class ProductDetailScreen extends StatelessWidget {
   final int? matchScore;
 
   const ProductDetailScreen({super.key, required this.product, this.matchScore});
+
+  Future<void> _launchProductUrl(BuildContext context) async {
+    final uri = Uri.parse(product.productUrl);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } else {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not open the product page.')),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,15 +46,34 @@ class ProductDetailScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Product image
             Center(
-              child: Container(
-                width: 200,
-                height: 200,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
-                  shape: BoxShape.circle,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(24),
+                child: CachedNetworkImage(
+                  imageUrl: product.imageUrl,
+                  width: 200,
+                  height: 200,
+                  fit: BoxFit.cover,
+                  placeholder: (context, url) => Container(
+                    width: 200,
+                    height: 200,
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                    child: const Center(child: CircularProgressIndicator()),
+                  ),
+                  errorWidget: (context, url, error) => Container(
+                    width: 200,
+                    height: 200,
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(Icons.shopping_bag, size: 100, color: Theme.of(context).colorScheme.primary),
+                  ),
                 ),
-                child: Icon(Icons.shopping_bag, size: 100, color: Theme.of(context).colorScheme.primary),
               ),
             ),
             const SizedBox(height: 32),
@@ -94,11 +128,10 @@ class ProductDetailScreen extends StatelessWidget {
             const SizedBox(height: 48),
             SizedBox(
               width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Added to cart (Demo)')));
-                },
-                child: const Text("Buy Now"),
+              child: ElevatedButton.icon(
+                onPressed: () => _launchProductUrl(context),
+                icon: const Icon(Icons.shopping_cart),
+                label: const Text("Buy Now on Amazon"),
               ),
             ),
             const SizedBox(height: 24),

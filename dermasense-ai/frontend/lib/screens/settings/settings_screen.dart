@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../providers/auth_provider.dart';
+import '../auth/login_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -71,8 +74,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ListTile(
             title: const Text("Logout", style: TextStyle(color: Colors.red)),
             leading: const Icon(Icons.logout, color: Colors.red),
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Logging out...')));
+            onTap: () async {
+              final authProvider = Provider.of<AuthProvider>(context, listen: false);
+              await authProvider.signOut();
+              if (mounted) {
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => const LoginScreen()),
+                  (route) => false,
+                );
+              }
             },
           ),
         ],
