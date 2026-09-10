@@ -2,13 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/ds/ds_card.dart';
-import '../../widgets/ds/ds_button.dart';
 import '../../widgets/ds/ds_avatar.dart';
 import '../../providers/skin_profile_provider.dart';
 import '../../providers/history_provider.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
-import 'edit_profile_screen.dart';
 import '../settings/settings_screen.dart';
 import '../history/history_screen.dart';
 import '../../providers/auth_provider.dart';
@@ -66,19 +64,6 @@ class ProfileScreen extends StatelessWidget {
                         Text(
                           profile.email,
                           style: Theme.of(context).textTheme.bodyMedium,
-                        ),
-                        const SizedBox(height: AppTheme.space24),
-                        DSButton(
-                          variant: DSButtonVariant.secondary,
-                          label: "Edit Profile",
-                          icon: Icons.edit_outlined,
-                          isFullWidth: false,
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => EditProfileScreen(profile: profile)),
-                            );
-                          },
                         ),
                       ],
                     ),
