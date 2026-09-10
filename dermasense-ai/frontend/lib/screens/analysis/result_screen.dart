@@ -16,42 +16,179 @@ class ResultScreen extends StatefulWidget {
 }
 
 class _ResultScreenState extends State<ResultScreen> {
-  String _selectedOverlayKey = 'redness';
+  late final PageController _heatmapPageController;
+  late final ScrollController _chipsScrollController;
+  int _currentHeatmapIndex = 0;
+  bool _showRawImage = false;
 
-  // Mapping feature keys to human labels and colors
-  static const Map<String, String> _featureLabels = {
-    'redness': 'Redness & Erythema',
-    'oiliness': 'Oiliness & Sebum',
-    'texture': 'Texture & Roughness',
-    'pores': 'Follicular Pores',
-    'blemishes': 'Blemishes & Spots',
-    'hydration': 'Hydration Level',
-    'pigment': 'Pigmentation & Melanin',
-    'wrinkles': 'Wrinkles & Fine Lines',
-    'dark_circles': 'Dark Circles',
-    'eye_bags': 'Eye Bags & Puffiness',
-    'firmness': 'Firmness & Elasticity',
-    'radiance': 'Radiance & Glow',
-    'tone_evenness': 'Skin Tone Evenness',
-    'sun_damage': 'Sun Damage & UV Spots',
-    'pore_dilation': 'Pore Dilation',
-    'barrier_health': 'Barrier Health',
-    'acne_severity': 'Active Acne & Breakouts',
+  // Metadata for each biomarker: Label, Icon, Anatomical Zone, and Accent Color
+  static const Map<String, _BiomarkerMeta> _biomarkerMeta = {
+    'acne_severity': _BiomarkerMeta(
+      label: 'Active Acne & Breakouts',
+      icon: Icons.warning_amber_rounded,
+      zone: 'T-Zone & Cheeks',
+      color: AppTheme.error,
+      clinicalDesc: 'Inflammatory papules & erythematous lesion cores',
+    ),
+    'redness': _BiomarkerMeta(
+      label: 'Redness & Erythema',
+      icon: Icons.flare_rounded,
+      zone: 'Malar Cheeks & Nose',
+      color: Color(0xFFFF5252),
+      clinicalDesc: 'Micro-capillary dilation & localized irritation',
+    ),
+    'blemishes': _BiomarkerMeta(
+      label: 'Blemishes & Imperfections',
+      icon: Icons.adjust_rounded,
+      zone: 'Full Facial Canvas',
+      color: AppTheme.warning,
+      clinicalDesc: 'High-contrast surface lesions & textural spots',
+    ),
+    'pigment': _BiomarkerMeta(
+      label: 'Pigmentation & Melanin',
+      icon: Icons.blur_circular_rounded,
+      zone: 'Cheeks & Forehead',
+      color: Color(0xFFE5A93B),
+      clinicalDesc: 'Localized hyperpigmentation & melanin clustering',
+    ),
+    'sun_damage': _BiomarkerMeta(
+      label: 'Sun Damage & UV Spots',
+      icon: Icons.wb_sunny_rounded,
+      zone: 'Sun-Exposed Zones',
+      color: Colors.amber,
+      clinicalDesc: 'Sub-surface actinic photo-damage & lentigines',
+    ),
+    'wrinkles': _BiomarkerMeta(
+      label: 'Wrinkles & Rhytides',
+      icon: Icons.waves_rounded,
+      zone: 'Forehead & Periorbital',
+      color: Color(0xFFBA68C8),
+      clinicalDesc: 'Directional creases along relaxed skin tension lines',
+    ),
+    'dark_circles': _BiomarkerMeta(
+      label: 'Dark Circles',
+      icon: Icons.remove_red_eye_outlined,
+      zone: 'Infraorbital / Under-Eye',
+      color: Color(0xFF9B51E0),
+      clinicalDesc: 'Periorbital melanin & vascular shadow pooling',
+    ),
+    'eye_bags': _BiomarkerMeta(
+      label: 'Eye Bags & Puffiness',
+      icon: Icons.visibility_rounded,
+      zone: 'Lower Eyelid Margin',
+      color: Color(0xFF7E57C2),
+      clinicalDesc: 'Fluid accumulation & orbital fat contour protrusion',
+    ),
+    'firmness': _BiomarkerMeta(
+      label: 'Skin Firmness & Tension',
+      icon: Icons.compress_rounded,
+      zone: 'Jawline & Jowl Contour',
+      color: Color(0xFF26A69A),
+      clinicalDesc: 'Structural tissue descent & dermal laxity index',
+    ),
+    'pore_dilation': _BiomarkerMeta(
+      label: 'Dilated & Enlarged Pores',
+      icon: Icons.filter_center_focus_rounded,
+      zone: 'Nose & Medial Cheeks',
+      color: Color(0xFFFF8A65),
+      clinicalDesc: 'Noticeably enlarged follicular ostia & sebum congestion',
+    ),
+    'pores': _BiomarkerMeta(
+      label: 'Follicular Pore Density',
+      icon: Icons.grain_rounded,
+      zone: 'Central Facial Grid',
+      color: AppTheme.primaryLight,
+      clinicalDesc: 'Overall follicular opening distribution & visibility',
+    ),
+    'texture': _BiomarkerMeta(
+      label: 'Surface Micro-Roughness',
+      icon: Icons.texture_rounded,
+      zone: 'Lateral Cheeks',
+      color: AppTheme.secondaryLight,
+      clinicalDesc: 'Keratinization uniformity & micro-relief smoothness',
+    ),
+    'oiliness': _BiomarkerMeta(
+      label: 'Oiliness & Sebum Shine',
+      icon: Icons.water_drop_rounded,
+      zone: 'Sebaceous T-Zone',
+      color: Color(0xFFFFB74D),
+      clinicalDesc: 'Specular highlight reflectance & lipid accumulation',
+    ),
+    'hydration': _BiomarkerMeta(
+      label: 'Skin Hydration Level',
+      icon: Icons.opacity_rounded,
+      zone: 'Stratum Corneum',
+      color: AppTheme.info,
+      clinicalDesc: 'Moisture barrier plumpness & diffuse radiance',
+    ),
+    'barrier_health': _BiomarkerMeta(
+      label: 'Barrier Resilience',
+      icon: Icons.shield_outlined,
+      zone: 'Epidermal Shield',
+      color: Color(0xFFFF7043),
+      clinicalDesc: 'Acid mantle integrity & sub-clinical micro-flaking',
+    ),
+    'tone_evenness': _BiomarkerMeta(
+      label: 'Complexion Uniformity (ITA°)',
+      icon: Icons.palette_outlined,
+      zone: 'Overall Complexion',
+      color: Color(0xFF4FC3F7),
+      clinicalDesc: 'Chromaticity dispersion across anatomical boundaries',
+    ),
+    'radiance': _BiomarkerMeta(
+      label: 'Radiance & Vital Glow',
+      icon: Icons.auto_awesome_rounded,
+      zone: 'Diffuse Light Scatter',
+      color: Color(0xFF66BB6A),
+      clinicalDesc: 'Healthy skin luminosity vs muddy/sallow dullness',
+    ),
   };
 
   @override
   void initState() {
     super.initState();
-    final overlays = widget.scanResult?['overlays'] as Map<String, dynamic>? ?? {};
-    if (!overlays.containsKey(_selectedOverlayKey) && overlays.isNotEmpty) {
-      _selectedOverlayKey = overlays.keys.first;
+    _heatmapPageController = PageController(viewportFraction: 0.90);
+    _chipsScrollController = ScrollController();
+  }
+
+  @override
+  void dispose() {
+    _heatmapPageController.dispose();
+    _chipsScrollController.dispose();
+    super.dispose();
+  }
+
+  void _onHeatmapSwiped(int index, List<String> keys) {
+    setState(() {
+      _currentHeatmapIndex = index;
+    });
+
+    // Auto-scroll the top horizontal chip list to keep the active item centered
+    if (_chipsScrollController.hasClients) {
+      const chipApproxWidth = 135.0;
+      final screenWidth = MediaQuery.of(context).size.width;
+      final targetScroll = (index * chipApproxWidth) - (screenWidth / 2) + (chipApproxWidth / 2);
+      _chipsScrollController.animateTo(
+        targetScroll.clamp(0.0, _chipsScrollController.position.maxScrollExtent),
+        duration: const Duration(milliseconds: 350),
+        curve: Curves.easeOutCubic,
+      );
     }
+  }
+
+  void _onChipTapped(int index) {
+    _heatmapPageController.animateToPage(
+      index,
+      duration: const Duration(milliseconds: 350),
+      curve: Curves.easeInOutCubic,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final scores = widget.scanResult?['scores'] as Map<String, dynamic>? ?? {};
     final overlays = widget.scanResult?['overlays'] as Map<String, dynamic>? ?? {};
+    final overlayKeys = overlays.keys.toList();
 
     // Weighted overall skin score calculation
     double overallScore = 0.85;
@@ -117,232 +254,580 @@ class _ResultScreenState extends State<ResultScreen> {
         elevation: 0,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: AppTheme.space20, vertical: AppTheme.space24),
+        padding: const EdgeInsets.symmetric(vertical: AppTheme.space20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Overall Score Header Card
-            DSCard(
-              padding: const EdgeInsets.symmetric(vertical: AppTheme.space24, horizontal: AppTheme.space16),
-              child: Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.verified_user_rounded, size: 20, color: statusColor),
-                      const SizedBox(width: 8),
-                      Text(
-                        "Clinical Skin Health Index",
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w600,
-                              letterSpacing: 0.5,
-                            ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: AppTheme.space20),
-                  DSProgressCircle(
-                    value: overallScore,
-                    size: 150,
-                    strokeWidth: 12,
-                    color: statusColor,
-                    centerText: "$scoreInt",
-                    centerSubText: "/100",
-                  ),
-                  const SizedBox(height: AppTheme.space16),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: statusColor.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: statusColor.withValues(alpha: 0.4)),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppTheme.space20),
+              child: DSCard(
+                padding: const EdgeInsets.symmetric(vertical: AppTheme.space24, horizontal: AppTheme.space16),
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.verified_user_rounded, size: 20, color: statusColor),
+                        const SizedBox(width: 8),
+                        Text(
+                          "Clinical Skin Health Index",
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: 0.5,
+                              ),
+                        ),
+                      ],
                     ),
-                    child: Text(
-                      healthStatus,
-                      style: TextStyle(
-                        color: statusColor,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 13,
+                    const SizedBox(height: AppTheme.space20),
+                    DSProgressCircle(
+                      value: overallScore,
+                      size: 140,
+                      strokeWidth: 11,
+                      color: statusColor,
+                      centerText: "$scoreInt",
+                      centerSubText: "/100",
+                    ),
+                    const SizedBox(height: AppTheme.space16),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: statusColor.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: statusColor.withValues(alpha: 0.4)),
+                      ),
+                      child: Text(
+                        healthStatus,
+                        style: TextStyle(
+                          color: statusColor,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 13,
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    "Validated across 17 clinical diagnostic biomarkers",
-                    style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
-                  ),
-                ],
+                    const SizedBox(height: 8),
+                    Text(
+                      "Validated across 17 clinical diagnostic biomarkers",
+                      style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
+                    ),
+                  ],
+                ),
               ),
             ),
-            const SizedBox(height: AppTheme.space32),
+            const SizedBox(height: AppTheme.space24),
 
-            // Explainable AI Heatmap Section
-            if (overlays.isNotEmpty) ...[
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text("Explainable AI Heatmap", style: Theme.of(context).textTheme.titleLarge),
-                  Text(
-                    "${overlays.length} Maps Ready",
-                    style: TextStyle(color: AppTheme.primary, fontSize: 12, fontWeight: FontWeight.bold),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              // Feature Chip Selector
-              SizedBox(
-                height: 40,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  children: overlays.keys.map((key) {
-                    final isSelected = _selectedOverlayKey == key;
-                    final label = _featureLabels[key] ?? key.replaceAll('_', ' ').toUpperCase();
-                    return Padding(
-                      padding: const EdgeInsets.only(right: 8.0),
-                      child: ChoiceChip(
-                        label: Text(
-                          label,
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                            color: isSelected ? Colors.white : AppTheme.textSecondary,
-                          ),
-                        ),
-                        selected: isSelected,
-                        selectedColor: AppTheme.primary,
-                        backgroundColor: AppTheme.surfaceElevated,
-                        onSelected: (selected) {
-                          if (selected) {
-                            setState(() => _selectedOverlayKey = key);
-                          }
-                        },
-                      ),
-                    );
-                  }).toList(),
-                ),
-              ),
-              const SizedBox(height: 14),
-
-              // Heatmap Viewer Card
-              DSCard(
-                padding: EdgeInsets.zero,
-                child: ClipRRect(
-                  borderRadius: AppTheme.borderRadiusLarge,
-                  child: Stack(
-                    alignment: Alignment.bottomCenter,
-                    children: [
-                      SizedBox(
-                        width: double.infinity,
-                        height: 320,
-                        child: overlays.containsKey(_selectedOverlayKey)
-                            ? Image.memory(
-                                base64Decode((overlays[_selectedOverlayKey] as String).split(',').last),
-                                fit: BoxFit.contain,
-                              )
-                            : (widget.originalImage != null
-                                ? Image.memory(widget.originalImage!, fit: BoxFit.contain)
-                                : const Center(child: Text("No visual data"))),
-                      ),
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-                        color: Colors.black.withValues(alpha: 0.7),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              _featureLabels[_selectedOverlayKey] ?? _selectedOverlayKey,
-                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 13),
-                            ),
-                            if (scores.containsKey(_selectedOverlayKey))
-                              Text(
-                                "Severity: ${((scores[_selectedOverlayKey] as num).toDouble() * 100).round()}%",
-                                style: TextStyle(
-                                  color: AppTheme.primaryLight,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 13,
-                                ),
-                              ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+            // ==========================================
+            // TOP-NOTCH SWIPEABLE AI HEATMAP CAROUSEL
+            // ==========================================
+            if (overlayKeys.isNotEmpty) ...[
+              _buildTopNotchHeatmapViewer(
+                context: context,
+                keys: overlayKeys,
+                overlays: overlays,
+                scores: scores,
               ),
               const SizedBox(height: AppTheme.space32),
             ],
 
             // Section 1: Active Concerns & Blemishes
-            _buildCategorySection(
-              context: context,
-              title: "🚨 Active Skin Concerns",
-              subtitle: "Inflammatory and localized pigmentation findings",
-              metrics: [
-                if (scores.containsKey('acne_severity'))
-                  _MetricItem('acne_severity', 'Acne & Active Breakouts', scores['acne_severity'], AppTheme.error, isPositive: false),
-                if (scores.containsKey('redness'))
-                  _MetricItem('redness', 'Redness & Erythema', scores['redness'], AppTheme.error, isPositive: false),
-                if (scores.containsKey('blemishes'))
-                  _MetricItem('blemishes', 'Blemishes & Lesions', scores['blemishes'], AppTheme.warning, isPositive: false),
-                if (scores.containsKey('pigment'))
-                  _MetricItem('pigment', 'Pigmentation & Melanin', scores['pigment'], const Color(0xFFE5A93B), isPositive: false),
-                if (scores.containsKey('sun_damage'))
-                  _MetricItem('sun_damage', 'Sun Damage & Actinic Spots', scores['sun_damage'], Colors.amber, isPositive: false),
-              ],
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppTheme.space20),
+              child: _buildCategorySection(
+                context: context,
+                title: "🚨 Active Skin Concerns",
+                subtitle: "Inflammatory and localized pigmentation findings",
+                metrics: [
+                  if (scores.containsKey('acne_severity'))
+                    _MetricItem('acne_severity', 'Acne & Active Breakouts', scores['acne_severity'], AppTheme.error, isPositive: false),
+                  if (scores.containsKey('redness'))
+                    _MetricItem('redness', 'Redness & Erythema', scores['redness'], AppTheme.error, isPositive: false),
+                  if (scores.containsKey('blemishes'))
+                    _MetricItem('blemishes', 'Blemishes & Lesions', scores['blemishes'], AppTheme.warning, isPositive: false),
+                  if (scores.containsKey('pigment'))
+                    _MetricItem('pigment', 'Pigmentation & Melanin', scores['pigment'], const Color(0xFFE5A93B), isPositive: false),
+                  if (scores.containsKey('sun_damage'))
+                    _MetricItem('sun_damage', 'Sun Damage & Actinic Spots', scores['sun_damage'], Colors.amber, isPositive: false),
+                ],
+              ),
             ),
             const SizedBox(height: AppTheme.space24),
 
             // Section 2: Aging & Structural Tone
-            _buildCategorySection(
-              context: context,
-              title: "⏳ Aging & Structural Integrity",
-              subtitle: "Wrinkles, tension, and peri-orbital contour",
-              metrics: [
-                if (scores.containsKey('wrinkles'))
-                  _MetricItem('wrinkles', 'Wrinkles & Rhytides', scores['wrinkles'], AppTheme.secondary, isPositive: false),
-                if (scores.containsKey('dark_circles'))
-                  _MetricItem('dark_circles', 'Infraorbital Dark Circles', scores['dark_circles'], const Color(0xFF9B51E0), isPositive: false),
-                if (scores.containsKey('eye_bags'))
-                  _MetricItem('eye_bags', 'Eye Bags & Puffiness', scores['eye_bags'], const Color(0xFFBB6BD9), isPositive: false),
-                if (scores.containsKey('firmness'))
-                  _MetricItem('firmness', 'Skin Laxity / Descent', scores['firmness'], const Color(0xFF6FCF97), isPositive: false),
-              ],
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppTheme.space20),
+              child: _buildCategorySection(
+                context: context,
+                title: "⏳ Aging & Structural Integrity",
+                subtitle: "Wrinkles, tension, and peri-orbital contour",
+                metrics: [
+                  if (scores.containsKey('wrinkles'))
+                    _MetricItem('wrinkles', 'Wrinkles & Rhytides', scores['wrinkles'], AppTheme.secondary, isPositive: false),
+                  if (scores.containsKey('dark_circles'))
+                    _MetricItem('dark_circles', 'Infraorbital Dark Circles', scores['dark_circles'], const Color(0xFF9B51E0), isPositive: false),
+                  if (scores.containsKey('eye_bags'))
+                    _MetricItem('eye_bags', 'Eye Bags & Puffiness', scores['eye_bags'], const Color(0xFFBB6BD9), isPositive: false),
+                  if (scores.containsKey('firmness'))
+                    _MetricItem('firmness', 'Skin Laxity / Descent', scores['firmness'], const Color(0xFF6FCF97), isPositive: false),
+                ],
+              ),
             ),
             const SizedBox(height: AppTheme.space24),
 
             // Section 3: Surface & Barrier Quality
-            _buildCategorySection(
-              context: context,
-              title: "✨ Surface & Barrier Health",
-              subtitle: "Sebum, hydration, micro-relief and tone uniformity",
-              metrics: [
-                if (scores.containsKey('hydration'))
-                  _MetricItem('hydration', 'Skin Hydration Level', scores['hydration'], AppTheme.info, isPositive: true),
-                if (scores.containsKey('barrier_health'))
-                  _MetricItem('barrier_health', 'Barrier Compromise', scores['barrier_health'], const Color(0xFFF2994A), isPositive: false),
-                if (scores.containsKey('pore_dilation'))
-                  _MetricItem('pore_dilation', 'Enlarged Pore Openings', scores['pore_dilation'], AppTheme.primaryLight, isPositive: false),
-                if (scores.containsKey('pores'))
-                  _MetricItem('pores', 'Overall Pore Density', scores['pores'], AppTheme.primaryLight, isPositive: false),
-                if (scores.containsKey('texture'))
-                  _MetricItem('texture', 'Surface Roughness', scores['texture'], AppTheme.secondaryLight, isPositive: false),
-                if (scores.containsKey('oiliness'))
-                  _MetricItem('oiliness', 'Sebum & Shine Level', scores['oiliness'], AppTheme.warning, isPositive: false),
-                if (scores.containsKey('tone_evenness'))
-                  _MetricItem('tone_evenness', 'Tone Unevenness (ITA°)', scores['tone_evenness'], const Color(0xFF56CCF2), isPositive: false),
-                if (scores.containsKey('radiance'))
-                  _MetricItem('radiance', 'Skin Dullness Index', scores['radiance'], const Color(0xFF27AE60), isPositive: false),
-              ],
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppTheme.space20),
+              child: _buildCategorySection(
+                context: context,
+                title: "✨ Surface & Barrier Health",
+                subtitle: "Sebum, hydration, micro-relief and tone uniformity",
+                metrics: [
+                  if (scores.containsKey('hydration'))
+                    _MetricItem('hydration', 'Skin Hydration Level', scores['hydration'], AppTheme.info, isPositive: true),
+                  if (scores.containsKey('barrier_health'))
+                    _MetricItem('barrier_health', 'Barrier Compromise', scores['barrier_health'], const Color(0xFFF2994A), isPositive: false),
+                  if (scores.containsKey('pore_dilation'))
+                    _MetricItem('pore_dilation', 'Enlarged Pore Openings', scores['pore_dilation'], AppTheme.primaryLight, isPositive: false),
+                  if (scores.containsKey('pores'))
+                    _MetricItem('pores', 'Overall Pore Density', scores['pores'], AppTheme.primaryLight, isPositive: false),
+                  if (scores.containsKey('texture'))
+                    _MetricItem('texture', 'Surface Roughness', scores['texture'], AppTheme.secondaryLight, isPositive: false),
+                  if (scores.containsKey('oiliness'))
+                    _MetricItem('oiliness', 'Sebum & Shine Level', scores['oiliness'], AppTheme.warning, isPositive: false),
+                  if (scores.containsKey('tone_evenness'))
+                    _MetricItem('tone_evenness', 'Tone Unevenness (ITA°)', scores['tone_evenness'], const Color(0xFF56CCF2), isPositive: false),
+                  if (scores.containsKey('radiance'))
+                    _MetricItem('radiance', 'Skin Dullness Index', scores['radiance'], const Color(0xFF27AE60), isPositive: false),
+                ],
+              ),
             ),
             const SizedBox(height: AppTheme.space32),
 
             // Clinical Actives & Recommendations Card
-            _buildRecommendationsCard(context, scores),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppTheme.space20),
+              child: _buildRecommendationsCard(context, scores),
+            ),
             const SizedBox(height: AppTheme.space40),
           ],
         ),
       ),
+    );
+  }
+
+  // ==========================================
+  // TOP NOTCH AI HEATMAP CAROUSEL WIDGET
+  // ==========================================
+  Widget _buildTopNotchHeatmapViewer({
+    required BuildContext context,
+    required List<String> keys,
+    required Map<String, dynamic> overlays,
+    required Map<String, dynamic> scores,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Section Header with Swipe Hint & Live Counter
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: AppTheme.space20),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.auto_awesome, color: AppTheme.primary, size: 18),
+                      const SizedBox(width: 6),
+                      Text("Explainable AI Heatmap", style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 19)),
+                    ],
+                  ),
+                  const SizedBox(height: 2),
+                  Text("Swipe left / right on map to explore", style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
+                ],
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppTheme.surfaceHighlight,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppTheme.primary.withValues(alpha: 0.3)),
+                ),
+                child: Text(
+                  "${(_currentHeatmapIndex + 1).toString().padLeft(2, '0')} / ${keys.length.toString().padLeft(2, '0')}",
+                  style: const TextStyle(color: AppTheme.primaryLight, fontWeight: FontWeight.bold, fontSize: 12),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+
+        // Synchronized Horizontal Biomarker Selector Tabs
+        SizedBox(
+          height: 42,
+          child: ListView.builder(
+            controller: _chipsScrollController,
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: AppTheme.space20),
+            itemCount: keys.length,
+            itemBuilder: (context, index) {
+              final key = keys[index];
+              final meta = _biomarkerMeta[key];
+              final isSelected = index == _currentHeatmapIndex;
+              final color = meta?.color ?? AppTheme.primary;
+
+              return GestureDetector(
+                onTap: () => _onChipTapped(index),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 250),
+                  margin: const EdgeInsets.only(right: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: isSelected ? color.withValues(alpha: 0.22) : AppTheme.surfaceElevated,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isSelected ? color : Colors.white.withValues(alpha: 0.08),
+                      width: isSelected ? 1.5 : 1.0,
+                    ),
+                    boxShadow: isSelected
+                        ? [
+                            BoxShadow(
+                              color: color.withValues(alpha: 0.25),
+                              blurRadius: 10,
+                              offset: const Offset(0, 2),
+                            )
+                          ]
+                        : null,
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        meta?.icon ?? Icons.circle,
+                        size: 15,
+                        color: isSelected ? color : AppTheme.textSecondary,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        meta?.label ?? key,
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                          color: isSelected ? Colors.white : AppTheme.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+        const SizedBox(height: 16),
+
+        // ==========================================
+        // SWIPEABLE PAGEVIEW CAROUSEL
+        // ==========================================
+        SizedBox(
+          height: 380,
+          child: PageView.builder(
+            controller: _heatmapPageController,
+            onPageChanged: (index) => _onHeatmapSwiped(index, keys),
+            itemCount: keys.length,
+            itemBuilder: (context, index) {
+              final key = keys[index];
+              final meta = _biomarkerMeta[key];
+              final accentColor = meta?.color ?? AppTheme.primary;
+              final scoreVal = (scores[key] as num?)?.toDouble() ?? 0.0;
+              final isHydration = key == 'hydration';
+              final severityPercent = (scoreVal * 100).round();
+
+              String severityBadgeText;
+              Color badgeColor;
+              if (isHydration) {
+                if (severityPercent >= 70) {
+                  severityBadgeText = "Optimal Hydration";
+                  badgeColor = AppTheme.success;
+                } else if (severityPercent >= 45) {
+                  severityBadgeText = "Normal Moisture";
+                  badgeColor = AppTheme.info;
+                } else {
+                  severityBadgeText = "Dehydrated";
+                  badgeColor = AppTheme.warning;
+                }
+              } else {
+                if (severityPercent <= 20) {
+                  severityBadgeText = "Minimal / Clear";
+                  badgeColor = AppTheme.success;
+                } else if (severityPercent <= 50) {
+                  severityBadgeText = "Mild Severity";
+                  badgeColor = AppTheme.warning;
+                } else {
+                  severityBadgeText = "Elevated Severity";
+                  badgeColor = AppTheme.error;
+                }
+              }
+
+              final overlayBase64 = overlays[key] as String?;
+
+              return AnimatedPadding(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.symmetric(horizontal: 6),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: AppTheme.surfaceBase,
+                    borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
+                    border: Border.all(
+                      color: accentColor.withValues(alpha: 0.35),
+                      width: 1.5,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: accentColor.withValues(alpha: 0.12),
+                        blurRadius: 18,
+                        spreadRadius: 1,
+                        offset: const Offset(0, 6),
+                      )
+                    ],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(AppTheme.radiusLarge - 1.5),
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        // 1. Base Image: Either Heatmap or Natural Photo based on toggle
+                        AnimatedCrossFade(
+                          duration: const Duration(milliseconds: 250),
+                          crossFadeState: _showRawImage || overlayBase64 == null
+                              ? CrossFadeState.showSecond
+                              : CrossFadeState.showFirst,
+                          firstChild: overlayBase64 != null
+                              ? Image.memory(
+                                  base64Decode(overlayBase64.split(',').last),
+                                  fit: BoxFit.cover,
+                                  width: double.infinity,
+                                  height: double.infinity,
+                                )
+                              : const SizedBox.shrink(),
+                          secondChild: widget.originalImage != null
+                              ? Image.memory(
+                                  widget.originalImage!,
+                                  fit: BoxFit.cover,
+                                  width: double.infinity,
+                                  height: double.infinity,
+                                )
+                              : Container(
+                                  color: Colors.black26,
+                                  child: const Center(
+                                    child: Text("No camera image", style: TextStyle(color: Colors.white54)),
+                                  ),
+                                ),
+                        ),
+
+                        // 2. Futuristic Cyber-Dermatology Reticle (HUD Corner Accents)
+                        Positioned.fill(
+                          child: IgnorePointer(
+                            child: CustomPaint(
+                              painter: _ReticleCornerPainter(color: accentColor.withValues(alpha: 0.7)),
+                            ),
+                          ),
+                        ),
+
+                        // 3. Top Floating Glassmorphic HUD Bar
+                        Positioned(
+                          top: 12,
+                          left: 12,
+                          right: 12,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              // Biomarker Icon & Tag
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withValues(alpha: 0.65),
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(color: accentColor.withValues(alpha: 0.4)),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Icon(meta?.icon ?? Icons.biotech, size: 15, color: accentColor),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      meta?.zone ?? "Target Area",
+                                      style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                                    ),
+                                  ],
+                                ),
+                              ),
+
+                              // Quick Compare Button ("Tap to View Original")
+                              GestureDetector(
+                                onTapDown: (_) => setState(() => _showRawImage = true),
+                                onTapUp: (_) => setState(() => _showRawImage = false),
+                                onTapCancel: () => setState(() => _showRawImage = false),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                  decoration: BoxDecoration(
+                                    color: _showRawImage
+                                        ? AppTheme.primary
+                                        : Colors.black.withValues(alpha: 0.65),
+                                    borderRadius: BorderRadius.circular(16),
+                                    border: Border.all(
+                                      color: _showRawImage ? AppTheme.primaryLight : Colors.white24,
+                                    ),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        _showRawImage ? Icons.visibility : Icons.compare_rounded,
+                                        size: 14,
+                                        color: Colors.white,
+                                      ),
+                                      const SizedBox(width: 5),
+                                      Text(
+                                        _showRawImage ? "Natural Photo" : "Hold for Real",
+                                        style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        // 4. Bottom Clinical Intelligence Card
+                        Positioned(
+                          bottom: 0,
+                          left: 0,
+                          right: 0,
+                          child: Container(
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.bottomCenter,
+                                end: Alignment.topCenter,
+                                colors: [
+                                  Colors.black.withValues(alpha: 0.95),
+                                  Colors.black.withValues(alpha: 0.75),
+                                  Colors.transparent,
+                                ],
+                              ),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        meta?.label ?? key,
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 15,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                      decoration: BoxDecoration(
+                                        color: badgeColor.withValues(alpha: 0.2),
+                                        borderRadius: BorderRadius.circular(10),
+                                        border: Border.all(color: badgeColor.withValues(alpha: 0.5)),
+                                      ),
+                                      child: Text(
+                                        "$severityPercent% • $severityBadgeText",
+                                        style: TextStyle(
+                                          color: badgeColor,
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  meta?.clinicalDesc ?? "Quantitative dermatological computer-vision finding.",
+                                  style: TextStyle(
+                                    color: Colors.white.withValues(alpha: 0.75),
+                                    fontSize: 11.5,
+                                  ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+        const SizedBox(height: 14),
+
+        // Carousel Dot Indicator & Chevron Navigation Bar
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: AppTheme.space20),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              // Left Chevron
+              IconButton(
+                icon: const Icon(Icons.chevron_left_rounded, size: 28),
+                color: _currentHeatmapIndex > 0 ? AppTheme.primaryLight : AppTheme.textDisabled,
+                onPressed: _currentHeatmapIndex > 0
+                    ? () => _onChipTapped(_currentHeatmapIndex - 1)
+                    : null,
+              ),
+
+              // Animated Indicator Dots
+              Expanded(
+                child: Center(
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: List.generate(keys.length, (index) {
+                        final isSelected = index == _currentHeatmapIndex;
+                        return AnimatedContainer(
+                          duration: const Duration(milliseconds: 250),
+                          margin: const EdgeInsets.symmetric(horizontal: 3),
+                          height: 6,
+                          width: isSelected ? 22 : 6,
+                          decoration: BoxDecoration(
+                            color: isSelected ? AppTheme.primary : AppTheme.surfaceHighlight,
+                            borderRadius: BorderRadius.circular(3),
+                          ),
+                        );
+                      }),
+                    ),
+                  ),
+                ),
+              ),
+
+              // Right Chevron
+              IconButton(
+                icon: const Icon(Icons.chevron_right_rounded, size: 28),
+                color: _currentHeatmapIndex < keys.length - 1 ? AppTheme.primaryLight : AppTheme.textDisabled,
+                onPressed: _currentHeatmapIndex < keys.length - 1
+                    ? () => _onChipTapped(_currentHeatmapIndex + 1)
+                    : null,
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
@@ -431,7 +916,8 @@ class _ResultScreenState extends State<ResultScreen> {
           const SizedBox(height: AppTheme.space16),
           ...topConcerns.map((c) {
             final actives = recommendations[c.key] ?? ['Daily Gentle Cleanser', 'Broad Spectrum SPF', 'Hydrating Moisturizer'];
-            final featureLabel = _featureLabels[c.key] ?? c.key;
+            final featureMeta = _biomarkerMeta[c.key];
+            final featureLabel = featureMeta?.label ?? c.key;
             return Container(
               margin: const EdgeInsets.only(bottom: 12),
               padding: const EdgeInsets.all(12),
@@ -475,6 +961,22 @@ class _ResultScreenState extends State<ResultScreen> {
   }
 }
 
+class _BiomarkerMeta {
+  final String label;
+  final IconData icon;
+  final String zone;
+  final Color color;
+  final String clinicalDesc;
+
+  const _BiomarkerMeta({
+    required this.label,
+    required this.icon,
+    required this.zone,
+    required this.color,
+    required this.clinicalDesc,
+  });
+}
+
 class _MetricItem {
   final String key;
   final String label;
@@ -484,4 +986,41 @@ class _MetricItem {
 
   _MetricItem(this.key, this.label, dynamic val, this.color, {this.isPositive = false})
       : value = (val as num?)?.toDouble() ?? 0.0;
+}
+
+/// Custom painter for medical scanner / cyber-dermatology biometric reticle corners
+class _ReticleCornerPainter extends CustomPainter {
+  final Color color;
+  const _ReticleCornerPainter({required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = 2.0
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
+
+    const cornerLength = 22.0;
+    const padding = 16.0;
+
+    // Top-Left Corner
+    canvas.drawLine(const Offset(padding, padding + cornerLength), const Offset(padding, padding), paint);
+    canvas.drawLine(const Offset(padding, padding), const Offset(padding + cornerLength, padding), paint);
+
+    // Top-Right Corner
+    canvas.drawLine(Offset(size.width - padding - cornerLength, padding), Offset(size.width - padding, padding), paint);
+    canvas.drawLine(Offset(size.width - padding, padding), Offset(size.width - padding, padding + cornerLength), paint);
+
+    // Bottom-Left Corner
+    canvas.drawLine(Offset(padding, size.height - padding - cornerLength), Offset(padding, size.height - padding), paint);
+    canvas.drawLine(Offset(padding, size.height - padding), Offset(padding + cornerLength, size.height - padding), paint);
+
+    // Bottom-Right Corner
+    canvas.drawLine(Offset(size.width - padding - cornerLength, size.height - padding), Offset(size.width - padding, size.height - padding), paint);
+    canvas.drawLine(Offset(size.width - padding, size.height - padding), Offset(size.width - padding, size.height - padding - cornerLength), paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _ReticleCornerPainter oldDelegate) => oldDelegate.color != color;
 }
