@@ -161,26 +161,32 @@ class _ResultScreenState extends State<ResultScreen> {
 
   void _scrollChipToCenter(int index) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
+      if (!mounted || !_chipsScrollController.hasClients) return;
       final chipKey = _chipKeyMap[index];
       final keyContext = chipKey?.currentContext;
       if (keyContext != null) {
-        Scrollable.ensureVisible(
-          keyContext,
-          alignment: 0.5,
-          duration: const Duration(milliseconds: 350),
-          curve: Curves.easeOutCubic,
-        );
-      } else if (_chipsScrollController.hasClients) {
-        final screenWidth = MediaQuery.of(context).size.width;
-        const approxChipWidth = 140.0;
-        final target = (index * approxChipWidth) - (screenWidth / 2) + (approxChipWidth / 2);
-        _chipsScrollController.animateTo(
-          target.clamp(0.0, _chipsScrollController.position.maxScrollExtent),
-          duration: const Duration(milliseconds: 350),
-          curve: Curves.easeOutCubic,
-        );
+        final box = keyContext.findRenderObject() as RenderBox?;
+        final scrollBox = _chipsScrollController.position.context.notificationContext?.findRenderObject() as RenderBox?;
+        if (box != null && box.hasSize && scrollBox != null && scrollBox.hasSize) {
+          final position = box.localToGlobal(Offset.zero, ancestor: scrollBox);
+          final currentOffset = _chipsScrollController.offset;
+          final targetOffset = currentOffset + position.dx - (scrollBox.size.width / 2) + (box.size.width / 2);
+          _chipsScrollController.animateTo(
+            targetOffset.clamp(0.0, _chipsScrollController.position.maxScrollExtent),
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOutCubic,
+          );
+          return;
+        }
       }
+      final screenWidth = MediaQuery.of(context).size.width;
+      const approxChipWidth = 140.0;
+      final target = (index * approxChipWidth) - (screenWidth / 2) + (approxChipWidth / 2);
+      _chipsScrollController.animateTo(
+        target.clamp(0.0, _chipsScrollController.position.maxScrollExtent),
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOutCubic,
+      );
     });
   }
 
@@ -650,16 +656,7 @@ class _ResultScreenState extends State<ResultScreen> {
                                 ),
                         ),
 
-                        // 2. Futuristic Cyber-Dermatology Reticle (HUD Corner Accents)
-                        Positioned.fill(
-                          child: IgnorePointer(
-                            child: CustomPaint(
-                              painter: _ReticleCornerPainter(color: accentColor.withValues(alpha: 0.7)),
-                            ),
-                          ),
-                        ),
-
-                        // 3. Top Floating Glassmorphic HUD Bar
+                        // 2. Top Floating Glassmorphic HUD Bar
                         Positioned(
                           top: 12,
                           left: 12,
@@ -1024,41 +1021,4 @@ class _MetricItem {
 
   _MetricItem(this.key, this.label, dynamic val, this.color, {this.isPositive = false})
       : value = (val as num?)?.toDouble() ?? 0.0;
-}
-
-/// Custom painter for medical scanner / cyber-dermatology biometric reticle corners
-class _ReticleCornerPainter extends CustomPainter {
-  final Color color;
-  const _ReticleCornerPainter({required this.color});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..strokeWidth = 2.0
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
-
-    const cornerLength = 22.0;
-    const padding = 16.0;
-
-    // Top-Left Corner
-    canvas.drawLine(const Offset(padding, padding + cornerLength), const Offset(padding, padding), paint);
-    canvas.drawLine(const Offset(padding, padding), const Offset(padding + cornerLength, padding), paint);
-
-    // Top-Right Corner
-    canvas.drawLine(Offset(size.width - padding - cornerLength, padding), Offset(size.width - padding, padding), paint);
-    canvas.drawLine(Offset(size.width - padding, padding), Offset(size.width - padding, padding + cornerLength), paint);
-
-    // Bottom-Left Corner
-    canvas.drawLine(Offset(padding, size.height - padding - cornerLength), Offset(padding, size.height - padding), paint);
-    canvas.drawLine(Offset(padding, size.height - padding), Offset(padding + cornerLength, size.height - padding), paint);
-
-    // Bottom-Right Corner
-    canvas.drawLine(Offset(size.width - padding - cornerLength, size.height - padding), Offset(size.width - padding, size.height - padding), paint);
-    canvas.drawLine(Offset(size.width - padding, size.height - padding), Offset(size.width - padding, size.height - padding - cornerLength), paint);
-  }
-
-  @override
-  bool shouldRepaint(covariant _ReticleCornerPainter oldDelegate) => oldDelegate.color != color;
 }
