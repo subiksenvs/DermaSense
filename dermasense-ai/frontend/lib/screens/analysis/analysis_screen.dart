@@ -26,7 +26,12 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
   String _analysisStep = "Initializing...";
 
   Future<void> _getImage(ImageSource source) async {
-    final pickedFile = await _picker.pickImage(source: source);
+    final pickedFile = await _picker.pickImage(
+      source: source,
+      maxWidth: 800,
+      maxHeight: 800,
+      imageQuality: 80,
+    );
     if (pickedFile != null) {
       final bytes = await pickedFile.readAsBytes();
       setState(() {

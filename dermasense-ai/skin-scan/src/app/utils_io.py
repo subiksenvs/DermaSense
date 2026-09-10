@@ -8,43 +8,38 @@ from PIL import Image
 
 def read_image_bgr(data: bytes) -> np.ndarray:
     """
-    Read image from bytes into BGR numpy array.
-    Strips EXIF data for privacy.
+    Read image from bytes directly into BGR numpy array using OpenCV.
+    Completely avoids PIL heap object allocation and strips EXIF naturally.
+    Immediately downscales large camera images to max 512px to guarantee low memory.
     """
-    # Load with PIL to strip EXIF
-    pil_img = Image.open(io.BytesIO(data))
+    nparr = np.frombuffer(data, np.uint8)
+    img_bgr = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+    if img_bgr is None:
+        raise ValueError("Failed to decode image")
 
-    # Remove EXIF data
-    img_without_exif = Image.new(pil_img.mode, pil_img.size)
-    img_without_exif.putdata(list(pil_img.getdata()))
-
-    # Convert to numpy BGR for OpenCV
-    img_rgb = np.array(img_without_exif)
-
-    # Handle grayscale
-    if len(img_rgb.shape) == 2:
-        img_bgr = cv2.cvtColor(img_rgb, cv2.COLOR_GRAY2BGR)
-    elif img_rgb.shape[2] == 4:  # RGBA
-        img_bgr = cv2.cvtColor(img_rgb, cv2.COLOR_RGBA2BGR)
-    else:  # RGB
-        img_bgr = cv2.cvtColor(img_rgb, cv2.COLOR_RGB2BGR)
+    # Ingest directly at analysis resolution (max 512px)
+    h, w = img_bgr.shape[:2]
+    if max(h, w) > 512:
+        scale = 512.0 / max(h, w)
+        new_w = int(w * scale)
+        new_h = int(h * scale)
+        img_bgr = cv2.resize(img_bgr, (new_w, new_h), interpolation=cv2.INTER_AREA)
 
     return img_bgr
 
 
 def encode_png_base64(img: np.ndarray) -> str:
     """
-    Encode numpy array as base64 PNG data URI.
-    Expects RGBA or grayscale image.
+    Encode numpy array as base64 PNG data URI with optimal compression.
     """
-    # Encode as PNG
-    success, buffer = cv2.imencode(".png", img)
+    # Use PNG compression level 4 for fast encoding and low RAM
+    success, buffer = cv2.imencode(".png", img, [cv2.IMWRITE_PNG_COMPRESSION, 4])
     if not success:
         raise ValueError("Failed to encode image as PNG")
 
-    # Convert to base64
-    b64_str = base64.b64encode(buffer).decode("utf-8")
+    b64_str = base64.b64encode(buffer).decode("ascii")
     return f"data:image/png;base64,{b64_str}"
+
 
 
 def resize_max(img: np.ndarray, max_size: int) -> np.ndarray:

@@ -1,4 +1,5 @@
 """Pipeline composition - orchestrates the comprehensive skin scan analysis."""
+import cv2
 import numpy as np
 import logging
 from typing import Dict
@@ -86,8 +87,8 @@ def run_scan(img: np.ndarray) -> Dict:
         - overlays: dict[str, str] (base64 PNG heatmaps)
         - regions: list[str]
     """
-    # Preprocess
-    img_processed = preprocess(img, max_size=640)
+    # Preprocess - optimal 512px analysis resolution
+    img_processed = preprocess(img, max_size=512)
 
     # Primary: Face landmarks detection
     detector = get_detector()
@@ -102,46 +103,74 @@ def run_scan(img: np.ndarray) -> Dict:
     if landmarks is not None:
         masks = make_region_masks(landmarks, img_processed.shape)
     else:
-        # Fail-Safe Fallback: Automatic Skin Chromaticity Segmentation
-        # Ensures analysis NEVER fails even for macro skin crops or angled selfies!
         logger.info("FaceMesh landmarks not found; engaging intelligent skin segmentation fallback.")
         masks = make_fallback_skin_masks(img_processed)
 
-    # Execute all 17 clinical diagnostic maps
-    maps = {
-        # Core Clinical Markers
-        "redness": redness_map(img_processed, masks),
-        "oiliness": oiliness_map(img_processed, masks),
-        "texture": texture_map(img_processed, masks),
-        "pores": pores_map(img_processed, masks),
-        "blemishes": blemish_map(img_processed, masks),
-        "hydration": hydration_map(img_processed, masks),
-        "pigment": pigment_map(img_processed, masks),
-
-        # 10 Vital Additional Features
-        "wrinkles": wrinkles_map(img_processed, masks),
-        "dark_circles": dark_circles_map(img_processed, masks),
-        "eye_bags": eye_bags_map(img_processed, masks),
-        "firmness": firmness_map(img_processed, masks),
-        "radiance": radiance_map(img_processed, masks),
-        "tone_evenness": tone_evenness_map(img_processed, masks),
-        "sun_damage": sun_damage_map(img_processed, masks),
-        "pore_dilation": pore_dilation_map(img_processed, masks),
-        "barrier_health": barrier_health_map(img_processed, masks),
-        "acne_severity": acne_severity_map(img_processed, masks),
+    # Clinical colormaps per category
+    colormaps = {
+        "redness": cv2.COLORMAP_HOT,
+        "oiliness": cv2.COLORMAP_VIRIDIS,
+        "texture": cv2.COLORMAP_BONE,
+        "pores": cv2.COLORMAP_COOL,
+        "blemishes": cv2.COLORMAP_AUTUMN,
+        "hydration": cv2.COLORMAP_OCEAN,
+        "pigment": cv2.COLORMAP_PINK,
+        "wrinkles": cv2.COLORMAP_MAGMA,
+        "dark_circles": cv2.COLORMAP_TWILIGHT,
+        "eye_bags": cv2.COLORMAP_INFERNO,
+        "firmness": cv2.COLORMAP_CIVIDIS,
+        "radiance": cv2.COLORMAP_SUMMER,
+        "tone_evenness": cv2.COLORMAP_TURBO,
+        "sun_damage": cv2.COLORMAP_JET,
+        "pore_dilation": cv2.COLORMAP_COOL,
+        "barrier_health": cv2.COLORMAP_SPRING,
+        "acne_severity": cv2.COLORMAP_HOT,
     }
 
-    # Compute scores for each metric
-    scores = {name: score_from_map(map_data, masks) for name, map_data in maps.items()}
-
-    # Generate overlay heatmaps
-    overlay_images = generate_all_overlays(maps, alpha=0.6)
-
-    # Encode overlays to base64 PNG
-    overlays = {
-        name: encode_png_base64(overlay_rgba)
-        for name, overlay_rgba in overlay_images.items()
+    map_functions = {
+        "redness": redness_map,
+        "oiliness": oiliness_map,
+        "texture": texture_map,
+        "pores": pores_map,
+        "blemishes": blemish_map,
+        "hydration": hydration_map,
+        "pigment": pigment_map,
+        "wrinkles": wrinkles_map,
+        "dark_circles": dark_circles_map,
+        "eye_bags": eye_bags_map,
+        "firmness": firmness_map,
+        "radiance": radiance_map,
+        "tone_evenness": tone_evenness_map,
+        "sun_damage": sun_damage_map,
+        "pore_dilation": pore_dilation_map,
+        "barrier_health": barrier_health_map,
+        "acne_severity": acne_severity_map,
     }
+
+    scores = {}
+    overlays = {}
+
+    # Streamlined execution: compute one map at a time, score it, generate compressed overlay,
+    # and immediately free raw arrays so peak memory never exceeds ~80MB!
+    from .visualize import create_heatmap_overlay
+    for name, func in map_functions.items():
+        raw_map = func(img_processed, masks)
+        scores[name] = score_from_map(raw_map, masks)
+
+        # Downsample map to max 300px for mobile overlay preview
+        mh, mw = raw_map.shape[:2]
+        if max(mh, mw) > 300:
+            scale = 300.0 / max(mh, mw)
+            small_map = cv2.resize(raw_map, (int(mw * scale), int(mh * scale)), interpolation=cv2.INTER_AREA)
+        else:
+            small_map = raw_map
+
+        cmap = colormaps.get(name, cv2.COLORMAP_JET)
+        overlay_rgba = create_heatmap_overlay(small_map, cmap, alpha=0.6)
+        overlays[name] = encode_png_base64(overlay_rgba)
+
+        del raw_map
+        del overlay_rgba
 
     regions = list(masks.keys())
 

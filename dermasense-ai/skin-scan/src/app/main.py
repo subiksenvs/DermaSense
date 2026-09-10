@@ -68,13 +68,20 @@ async def scan(image: UploadFile = File(...)):
 
         # Run scan pipeline
         result = run_scan(img_bgr)
+        del img_bgr
+        del image_data
         
-        # Aggressive garbage collection to stay under Render's 512MB limit
+        # Aggressive garbage collection & OS heap release (malloc_trim)
+        # Prevents glibc memory fragmentation on Linux (Render 512MB RAM container)
         import gc
         gc.collect()
-        
-        logger.info(f"Scan complete. Scores: {result['scores']}")
+        try:
+            import ctypes
+            ctypes.CDLL("libc.so.6").malloc_trim(0)
+        except Exception:
+            pass
 
+        logger.info(f"Scan complete. Scores: {result['scores']}")
         return result
 
     except ValueError as e:
