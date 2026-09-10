@@ -3,30 +3,23 @@ import cv2
 import numpy as np
 
 
-def pigment_map(img_bgr: np.ndarray, masks: dict[str, np.ndarray]) -> np.ndarray:
+def pigment_map(img_bgr: np.ndarray, masks: dict[str, np.ndarray], context=None) -> np.ndarray:
     """
     Compute pigmentation map.
-
-    Detects melanin-rich areas (hyperpigmentation, age spots, etc.)
-    using brown color detection in LAB color space.
-
-    Args:
-        img_bgr: Input image in BGR format
-        masks: Dict of region masks
-
-    Returns:
-        Normalized pigmentation map [0, 1]
+    Detects melanin-rich areas using brown color detection in LAB color space.
     """
-    # Convert to LAB color space
-    lab = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2LAB)
+    if context is not None:
+        lab = context.lab
+        face_mask = context.face_mask
+    else:
+        lab = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2LAB)
+        face_mask = np.zeros(img_bgr.shape[:2], dtype=bool)
+        for region_mask in masks.values():
+            face_mask |= region_mask > 0
+
     l_channel = lab[..., 0].astype(np.float32)
     a_channel = lab[..., 1].astype(np.float32)
     b_channel = lab[..., 2].astype(np.float32)
-
-    # Create face mask
-    face_mask = np.zeros(img_bgr.shape[:2], dtype=bool)
-    for region_mask in masks.values():
-        face_mask |= region_mask > 0
 
     if not face_mask.any():
         return np.zeros(img_bgr.shape[:2], dtype=np.float32)

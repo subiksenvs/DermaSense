@@ -3,28 +3,21 @@ import cv2
 import numpy as np
 
 
-def redness_map(img_bgr: np.ndarray, masks: dict[str, np.ndarray]) -> np.ndarray:
+def redness_map(img_bgr: np.ndarray, masks: dict[str, np.ndarray], context=None) -> np.ndarray:
     """
     Compute redness map from BGR image.
-
     Uses CIE LAB a* channel (red-green axis).
     Higher values indicate more redness.
-
-    Args:
-        img_bgr: Input image in BGR format
-        masks: Dict of region masks (forehead, cheeks, nose, chin)
-
-    Returns:
-        Normalized redness map [0, 1]
     """
-    # Convert to CIE LAB
-    lab = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2LAB).astype("float32")
-    a_channel = lab[..., 1]
-
-    # Create combined face mask
-    face_mask = np.zeros(img_bgr.shape[:2], dtype=bool)
-    for region_mask in masks.values():
-        face_mask |= region_mask > 0
+    if context is not None:
+        a_channel = context.lab[..., 1].astype("float32")
+        face_mask = context.face_mask
+    else:
+        lab = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2LAB).astype("float32")
+        a_channel = lab[..., 1]
+        face_mask = np.zeros(img_bgr.shape[:2], dtype=bool)
+        for region_mask in masks.values():
+            face_mask |= region_mask > 0
 
     if not face_mask.any():
         return np.zeros(img_bgr.shape[:2], dtype=np.float32)

@@ -4,27 +4,22 @@ import numpy as np
 from typing import Dict
 
 
-def tone_evenness_map(img_bgr: np.ndarray, masks: Dict[str, np.ndarray]) -> np.ndarray:
+def tone_evenness_map(img_bgr: np.ndarray, masks: Dict[str, np.ndarray], context=None) -> np.ndarray:
     """
     Compute skin tone unevenness / mottled dyschromia map.
-
-    Calculates localized standard deviation of chromaticity (CIELAB a*, b*)
-    and Individual Typology Angle (ITA) across facial regions.
-
-    Args:
-        img_bgr: Input BGR image
-        masks: Dict of region masks
-
-    Returns:
-        Normalized tone unevenness map [0, 1] (0 = perfectly even, 1 = mottled/uneven)
     """
     h, w = img_bgr.shape[:2]
-    lab = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2LAB).astype(np.float32)
-    l_chan, a_chan, b_chan = lab[..., 0], lab[..., 1], lab[..., 2]
-
-    face_mask = np.zeros((h, w), dtype=bool)
-    for m in masks.values():
-        face_mask |= m > 0
+    if context is not None:
+        l_chan = context.lab[..., 0].astype(np.float32)
+        a_chan = context.lab[..., 1].astype(np.float32)
+        b_chan = context.lab[..., 2].astype(np.float32)
+        face_mask = context.face_mask
+    else:
+        lab = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2LAB).astype(np.float32)
+        l_chan, a_chan, b_chan = lab[..., 0], lab[..., 1], lab[..., 2]
+        face_mask = np.zeros((h, w), dtype=bool)
+        for m in masks.values():
+            face_mask |= m > 0
 
     if not face_mask.any():
         return np.zeros((h, w), dtype=np.float32)

@@ -4,28 +4,22 @@ import numpy as np
 from typing import Dict
 
 
-def barrier_health_map(img_bgr: np.ndarray, masks: Dict[str, np.ndarray]) -> np.ndarray:
+def barrier_health_map(img_bgr: np.ndarray, masks: Dict[str, np.ndarray], context=None) -> np.ndarray:
     """
     Compute skin barrier compromise / sensitivity map.
-
-    Evaluates stratum corneum integrity via localized sub-clinical erythema,
-    micro-flakiness (high-frequency noise), and trans-epidermal moisture loss proxy.
-
-    Args:
-        img_bgr: Input BGR image
-        masks: Dict of region masks
-
-    Returns:
-        Normalized barrier compromise map [0, 1] (0 = resilient/healthy, 1 = impaired/sensitive)
     """
     h, w = img_bgr.shape[:2]
-    gray = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2GRAY)
-    lab = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2LAB).astype(np.float32)
-    a_chan = lab[..., 1]
-
-    face_mask = np.zeros((h, w), dtype=bool)
-    for m in masks.values():
-        face_mask |= m > 0
+    if context is not None:
+        gray = context.gray
+        a_chan = context.lab[..., 1].astype(np.float32)
+        face_mask = context.face_mask
+    else:
+        gray = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2GRAY)
+        lab = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2LAB).astype(np.float32)
+        a_chan = lab[..., 1]
+        face_mask = np.zeros((h, w), dtype=bool)
+        for m in masks.values():
+            face_mask |= m > 0
 
     if not face_mask.any():
         return np.zeros((h, w), dtype=np.float32)

@@ -4,22 +4,13 @@ import numpy as np
 from typing import Dict
 
 
-def eye_bags_map(img_bgr: np.ndarray, masks: Dict[str, np.ndarray]) -> np.ndarray:
+def eye_bags_map(img_bgr: np.ndarray, masks: Dict[str, np.ndarray], context=None) -> np.ndarray:
     """
     Compute eye bags and puffiness severity map.
-
-    Detects the 3D contour bulge of herniated orbital fat and fluid retention
-    using vertical luminance gradients and infraorbital shadow troughs.
-
-    Args:
-        img_bgr: Input BGR image
-        masks: Dict of region masks
-
-    Returns:
-        Normalized eye bags severity map [0, 1]
+    Detects 3D contour bulge using vertical luminance gradients.
     """
     h, w = img_bgr.shape[:2]
-    gray = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2GRAY).astype(np.float32)
+    gray = context.gray.astype(np.float32) if context is not None else cv2.cvtColor(img_bgr, cv2.COLOR_BGR2GRAY).astype(np.float32)
 
     under_eye_mask = masks.get("under_eyes", None)
     if under_eye_mask is None or np.count_nonzero(under_eye_mask) == 0:

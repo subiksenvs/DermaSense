@@ -4,23 +4,19 @@ import numpy as np
 from typing import Dict
 
 
-def dark_circles_map(img_bgr: np.ndarray, masks: Dict[str, np.ndarray]) -> np.ndarray:
+def dark_circles_map(img_bgr: np.ndarray, masks: Dict[str, np.ndarray], context=None) -> np.ndarray:
     """
     Compute dark circles intensity map.
-
-    Compares infraorbital under-eye skin to reference cheek skin tone
-    using CIELAB Delta E and lightness deficit (L*).
-
-    Args:
-        img_bgr: Input BGR image
-        masks: Dict of region masks
-
-    Returns:
-        Normalized dark circle severity map [0, 1]
+    Compares infraorbital under-eye skin to reference cheek skin tone.
     """
     h, w = img_bgr.shape[:2]
-    lab = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2LAB).astype(np.float32)
-    l_chan, a_chan, b_chan = lab[..., 0], lab[..., 1], lab[..., 2]
+    if context is not None:
+        l_chan = context.lab[..., 0].astype(np.float32)
+        a_chan = context.lab[..., 1].astype(np.float32)
+        b_chan = context.lab[..., 2].astype(np.float32)
+    else:
+        lab = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2LAB).astype(np.float32)
+        l_chan, a_chan, b_chan = lab[..., 0], lab[..., 1], lab[..., 2]
 
     under_eye_mask = masks.get("under_eyes", None)
     cheek_mask = masks.get("cheeks", None)

@@ -3,28 +3,19 @@ import cv2
 import numpy as np
 
 
-def oiliness_map(img_bgr: np.ndarray, masks: dict[str, np.ndarray]) -> np.ndarray:
+def oiliness_map(img_bgr: np.ndarray, masks: dict[str, np.ndarray], context=None) -> np.ndarray:
     """
     Compute oiliness map from BGR image.
-
     Detects specular highlights (shiny areas) using HSV thresholding.
-    High value (V) + low saturation (S) = specular reflection.
-
-    Args:
-        img_bgr: Input image in BGR format
-        masks: Dict of region masks
-
-    Returns:
-        Normalized oiliness map [0, 1]
     """
-    # Convert to HSV
-    hsv = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2HSV)
+    hsv = context.hsv if context is not None else cv2.cvtColor(img_bgr, cv2.COLOR_BGR2HSV)
     h, s, v = cv2.split(hsv)
+    face_mask = context.face_mask if context is not None else None
 
-    # Create face mask
-    face_mask = np.zeros(img_bgr.shape[:2], dtype=bool)
-    for region_mask in masks.values():
-        face_mask |= region_mask > 0
+    if face_mask is None:
+        face_mask = np.zeros(img_bgr.shape[:2], dtype=bool)
+        for region_mask in masks.values():
+            face_mask |= region_mask > 0
 
     if not face_mask.any():
         return np.zeros(img_bgr.shape[:2], dtype=np.float32)

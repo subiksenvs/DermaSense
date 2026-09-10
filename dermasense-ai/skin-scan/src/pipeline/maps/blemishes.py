@@ -3,29 +3,23 @@ import cv2
 import numpy as np
 
 
-def blemish_map(img_bgr: np.ndarray, masks: dict[str, np.ndarray]) -> np.ndarray:
+def blemish_map(img_bgr: np.ndarray, masks: dict[str, np.ndarray], context=None) -> np.ndarray:
     """
     Compute blemish map using rule-based detection.
-
-    Combines oiliness detection, pore-like features, and color variance
-    to identify potential blemishes (acne, spots, imperfections).
-
-    Args:
-        img_bgr: Input image in BGR format
-        masks: Dict of region masks
-
-    Returns:
-        Normalized blemish map [0, 1]
+    Combines oiliness detection, pore-like features, and color variance.
     """
-    # Convert to different color spaces
-    gray = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2GRAY)
-    hsv = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2HSV)
-    lab = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2LAB)
-
-    # Create face mask
-    face_mask = np.zeros(img_bgr.shape[:2], dtype=bool)
-    for region_mask in masks.values():
-        face_mask |= region_mask > 0
+    if context is not None:
+        gray = context.gray
+        hsv = context.hsv
+        lab = context.lab
+        face_mask = context.face_mask
+    else:
+        gray = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2GRAY)
+        hsv = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2HSV)
+        lab = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2LAB)
+        face_mask = np.zeros(img_bgr.shape[:2], dtype=bool)
+        for region_mask in masks.values():
+            face_mask |= region_mask > 0
 
     if not face_mask.any():
         return np.zeros(img_bgr.shape[:2], dtype=np.float32)

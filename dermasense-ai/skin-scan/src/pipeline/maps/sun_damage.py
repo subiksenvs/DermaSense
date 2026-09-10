@@ -4,28 +4,20 @@ import numpy as np
 from typing import Dict
 
 
-def sun_damage_map(img_bgr: np.ndarray, masks: Dict[str, np.ndarray]) -> np.ndarray:
+def sun_damage_map(img_bgr: np.ndarray, masks: Dict[str, np.ndarray], context=None) -> np.ndarray:
     """
     Compute sub-surface sun damage and UV spot intensity map.
-
-    Emulates clinical dermatological UV photography by analyzing
-    differential blue-spectrum melanin absorption vs red reflectance.
-
-    Args:
-        img_bgr: Input BGR image
-        masks: Dict of region masks
-
-    Returns:
-        Normalized sun damage / UV spot severity map [0, 1]
     """
     h, w = img_bgr.shape[:2]
     b = img_bgr[..., 0].astype(np.float32)
     g = img_bgr[..., 1].astype(np.float32)
     r = img_bgr[..., 2].astype(np.float32)
 
-    face_mask = np.zeros((h, w), dtype=bool)
-    for m in masks.values():
-        face_mask |= m > 0
+    face_mask = context.face_mask if context is not None else None
+    if face_mask is None:
+        face_mask = np.zeros((h, w), dtype=bool)
+        for m in masks.values():
+            face_mask |= m > 0
 
     if not face_mask.any():
         return np.zeros((h, w), dtype=np.float32)

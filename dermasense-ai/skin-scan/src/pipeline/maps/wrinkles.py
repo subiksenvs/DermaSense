@@ -4,28 +4,35 @@ import numpy as np
 from typing import Dict
 
 
-def wrinkles_map(img_bgr: np.ndarray, masks: Dict[str, np.ndarray]) -> np.ndarray:
+# Pre-cached clinical Gabor filter bank kernels for sub-millisecond execution
+_GABOR_KERNELS = [
+    cv2.getGaborKernel(
+        ksize=(15, 15),
+        sigma=2.0,
+        theta=theta,
+        lambd=lambd,
+        gamma=0.5,
+        psi=0,
+        ktype=cv2.CV_32F
+    )
+    for theta in [0, np.pi / 4, np.pi / 2, 3 * np.pi / 4]
+    for lambd in [4.0, 7.0]
+]
+
+
+def wrinkles_map(img_bgr: np.ndarray, masks: Dict[str, np.ndarray], context=None) -> np.ndarray:
     """
     Compute wrinkle and fine line density map.
-
-    Uses a bank of 2D Gabor wavelets across 4 orientations and 2 scales
-    specifically tuned to detect elongated skin rhytides (forehead lines,
-    crow's feet, nasolabial creases, and infraorbital fine lines).
-
-    Args:
-        img_bgr: Input BGR image
-        masks: Dict of region masks
-
-    Returns:
-        Normalized wrinkle intensity map [0, 1]
+    Uses pre-cached 2D Gabor wavelets across 4 orientations and 2 scales.
     """
     h, w = img_bgr.shape[:2]
-    gray = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2GRAY)
+    gray = context.gray if context is not None else cv2.cvtColor(img_bgr, cv2.COLOR_BGR2GRAY)
+    face_mask = context.face_mask if context is not None else None
 
-    # Combined face mask
-    face_mask = np.zeros((h, w), dtype=bool)
-    for m in masks.values():
-        face_mask |= m > 0
+    if face_mask is None:
+        face_mask = np.zeros((h, w), dtype=bool)
+        for m in masks.values():
+            face_mask |= m > 0
 
     if not face_mask.any():
         return np.zeros((h, w), dtype=np.float32)
@@ -43,29 +50,14 @@ def wrinkles_map(img_bgr: np.ndarray, masks: Dict[str, np.ndarray]) -> np.ndarra
     priority_mask = np.clip(priority_mask, 0.6, 2.0)
 
     # Contrast enhancement for subtle line visibility
-    clahe = cv2.createCLAHE(clipLimit=2.5, tileGridSize=(8, 8))
+    clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
     enhanced_gray = clahe.apply(gray)
 
-    # Multi-directional Gabor filter bank
-    # Wrinkles run horizontally (forehead), diagonally (crows feet), or vertically (nasolabial)
-    thetas = [0, np.pi / 4, np.pi / 2, 3 * np.pi / 4]
-    lambdas = [4.0, 7.0]  # fine lines to deeper creases
+    # Apply pre-cached Gabor filter bank
     accumulated_response = np.zeros((h, w), dtype=np.float32)
-
-    for theta in thetas:
-        for lambd in lambdas:
-            kernel = cv2.getGaborKernel(
-                ksize=(15, 15),
-                sigma=2.0,
-                theta=theta,
-                lambd=lambd,
-                gamma=0.5,
-                psi=0,
-                ktype=cv2.CV_32F
-            )
-            filtered = cv2.filter2D(enhanced_gray, cv2.CV_32F, kernel)
-            filtered = np.abs(filtered)
-            accumulated_response = np.maximum(accumulated_response, filtered)
+    for kernel in _GABOR_KERNELS:
+        filtered = np.abs(cv2.filter2D(enhanced_gray, cv2.CV_32F, kernel))
+        accumulated_response = np.maximum(accumulated_response, filtered)
 
     # High-pass line verification (wrinkles must be dark linear valleys)
     blur = cv2.GaussianBlur(enhanced_gray, (9, 9), 0)

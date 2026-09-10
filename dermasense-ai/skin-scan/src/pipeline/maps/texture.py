@@ -1,62 +1,52 @@
-"""Texture map using local variance analysis."""
+"""Texture map using vectorized micro-roughness gradient analysis."""
 import cv2
 import numpy as np
-from skimage.feature import local_binary_pattern
 
 
-def texture_map(img_bgr: np.ndarray, masks: dict[str, np.ndarray]) -> np.ndarray:
+def texture_map(img_bgr: np.ndarray, masks: dict[str, np.ndarray], context=None) -> np.ndarray:
     """
     Compute texture/roughness map.
-
-    Uses local variance and Local Binary Pattern (LBP) analysis.
+    Uses high-speed vectorized Scharr gradient and Laplacian variance.
     Higher values indicate rougher texture.
-
-    Args:
-        img_bgr: Input image in BGR format
-        masks: Dict of region masks
-
-    Returns:
-        Normalized texture map [0, 1]
     """
-    # Convert to grayscale
-    gray = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2GRAY)
+    gray = context.gray if context is not None else cv2.cvtColor(img_bgr, cv2.COLOR_BGR2GRAY)
+    face_mask = context.face_mask if context is not None else None
 
-    # Create face mask
-    face_mask = np.zeros(img_bgr.shape[:2], dtype=bool)
-    for region_mask in masks.values():
-        face_mask |= region_mask > 0
+    if face_mask is None:
+        face_mask = np.zeros(img_bgr.shape[:2], dtype=bool)
+        for region_mask in masks.values():
+            face_mask |= region_mask > 0
 
     if not face_mask.any():
         return np.zeros(img_bgr.shape[:2], dtype=np.float32)
 
-    # Method 1: Local variance (Laplacian variance)
+    # Method 1: Local Laplacian micro-contrast
     laplacian = cv2.Laplacian(gray, cv2.CV_32F, ksize=3)
-    variance = cv2.GaussianBlur(laplacian**2, (9, 9), 0)
+    variance = cv2.GaussianBlur(laplacian**2, (7, 7), 0)
 
-    # Method 2: Local Binary Pattern
-    radius = 1
-    n_points = 8 * radius
-    lbp = local_binary_pattern(gray, n_points, radius, method="uniform")
-
-    # Compute LBP variance in local patches
-    lbp_var = cv2.GaussianBlur(lbp.astype(np.float32), (9, 9), 0)
+    # Method 2: Vectorized Scharr micro-roughness gradient tensor
+    scharr_x = cv2.Scharr(gray, cv2.CV_32F, 1, 0)
+    scharr_y = cv2.Scharr(gray, cv2.CV_32F, 0, 1)
+    gradient_energy = cv2.GaussianBlur(scharr_x**2 + scharr_y**2, (7, 7), 0)
 
     # Combine both metrics
-    # Normalize each first
     var_norm = variance / (variance[face_mask].max() + 1e-6)
-    lbp_norm = lbp_var / (lbp_var[face_mask].max() + 1e-6)
+    grad_norm = gradient_energy / (gradient_energy[face_mask].max() + 1e-6)
 
-    # Weighted combination
-    texture = 0.6 * var_norm + 0.4 * lbp_norm
+    texture = 0.5 * var_norm + 0.5 * grad_norm
 
     # Normalize to [0, 1]
-    if face_mask.any():
-        face_vals = texture[face_mask]
-        t_min, t_max = face_vals.min(), face_vals.max()
-        if t_max - t_min > 1e-6:
-            texture = (texture - t_min) / (t_max - t_min)
+    face_vals = texture[face_mask]
+    if len(face_vals) > 0 and face_vals.max() > 1e-6:
+        p95 = np.percentile(face_vals, 95)
+        p5 = np.percentile(face_vals, 5)
+        if p95 > p5:
+            texture = np.clip((texture - p5) / (p95 - p5), 0, 1)
+        else:
+            texture = texture / face_vals.max()
 
     texture = np.clip(texture, 0, 1)
     texture[~face_mask] = 0
 
     return texture.astype(np.float32)
+

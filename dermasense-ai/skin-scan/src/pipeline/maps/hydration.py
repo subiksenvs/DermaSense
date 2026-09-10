@@ -3,32 +3,21 @@ import cv2
 import numpy as np
 
 
-def hydration_map(img_bgr: np.ndarray, masks: dict[str, np.ndarray]) -> np.ndarray:
+def hydration_map(img_bgr: np.ndarray, masks: dict[str, np.ndarray], context=None) -> np.ndarray:
     """
     Compute hydration map (proxy metric).
-
-    Hydration is estimated via:
-    - Texture smoothness (hydrated skin is smoother)
-    - Specular response (hydrated skin reflects more evenly)
-    - Absence of dry patches
-
-    This is a proxy metric that correlates with hydration but is not
-    a direct measurement like transepidermal water loss (TEWL).
-
-    Args:
-        img_bgr: Input image in BGR format
-        masks: Dict of region masks
-
-    Returns:
-        Normalized hydration map [0, 1] (higher = more hydrated)
     """
-    # Convert to grayscale
-    gray = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2GRAY)
-
-    # Create face mask
-    face_mask = np.zeros(img_bgr.shape[:2], dtype=bool)
-    for region_mask in masks.values():
-        face_mask |= region_mask > 0
+    if context is not None:
+        gray = context.gray
+        face_mask = context.face_mask
+        v_channel = context.hsv[..., 2].astype(np.float32)
+    else:
+        gray = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2GRAY)
+        face_mask = np.zeros(img_bgr.shape[:2], dtype=bool)
+        for region_mask in masks.values():
+            face_mask |= region_mask > 0
+        hsv = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2HSV)
+        v_channel = hsv[..., 2].astype(np.float32)
 
     if not face_mask.any():
         return np.zeros(img_bgr.shape[:2], dtype=np.float32)
@@ -41,10 +30,6 @@ def hydration_map(img_bgr: np.ndarray, masks: dict[str, np.ndarray]) -> np.ndarr
     # Invert: high roughness = low hydration
     smoothness = 1.0 / (roughness + 1e-6)
     smoothness = smoothness / (smoothness[face_mask].max() + 1e-6)
-
-    # Feature 2: Even specular response (hydrated skin has even sheen)
-    hsv = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2HSV)
-    v_channel = hsv[..., 2].astype(np.float32)
 
     # Compute local standard deviation of brightness
     v_blur = cv2.GaussianBlur(v_channel, (15, 15), 0)

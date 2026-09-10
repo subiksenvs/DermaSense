@@ -34,21 +34,33 @@ from ..app.utils_io import encode_png_base64
 logger = logging.getLogger(__name__)
 
 
-def score_from_map(map_data: np.ndarray, masks: dict[str, np.ndarray]) -> float:
+class SkinContext:
+    """Pre-computed image context to eliminate redundant color space conversions."""
+    __slots__ = ('img_bgr', 'masks', 'gray', 'lab', 'hsv', 'face_mask', 'h', 'w')
+
+    def __init__(self, img_bgr: np.ndarray, masks: dict):
+        self.img_bgr = img_bgr
+        self.masks = masks
+        self.h, self.w = img_bgr.shape[:2]
+        self.gray = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2GRAY)
+        self.lab = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2LAB)
+        self.hsv = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2HSV)
+
+        # Pre-compute unified boolean face mask
+        face_mask = np.zeros((self.h, self.w), dtype=bool)
+        for m in masks.values():
+            face_mask |= m > 0
+        self.face_mask = face_mask
+
+
+def score_from_map(map_data: np.ndarray, masks: dict[str, np.ndarray], face_mask: np.ndarray = None) -> float:
     """
     Compute single score from map using region-weighted average.
-
-    Args:
-        map_data: Normalized map [0, 1]
-        masks: Region masks
-
-    Returns:
-        Score [0, 1]
     """
-    # Create combined face mask
-    face_mask = np.zeros(map_data.shape, dtype=bool)
-    for region_mask in masks.values():
-        face_mask |= region_mask > 0
+    if face_mask is None:
+        face_mask = np.zeros(map_data.shape[:2], dtype=bool)
+        for region_mask in masks.values():
+            face_mask |= region_mask > 0
 
     if not face_mask.any():
         return 0.0
@@ -76,19 +88,10 @@ def get_detector():
 
 def run_scan(img: np.ndarray) -> Dict:
     """
-    Run complete 17-feature skin scan pipeline with dual-engine fail-safe fallback.
-
-    Args:
-        img: Input BGR image
-
-    Returns:
-        Dict with keys:
-        - scores: dict[str, float] (17 normalized diagnostic scores)
-        - overlays: dict[str, str] (base64 PNG heatmaps)
-        - regions: list[str]
+    Run complete 17-feature skin scan pipeline with ultra-fast execution and minimal RAM.
     """
-    # Preprocess - optimal 512px analysis resolution
-    img_processed = preprocess(img, max_size=512)
+    # Preprocess - optimal 448px analysis resolution (fast, accurate, low-RAM)
+    img_processed = preprocess(img, max_size=448)
 
     # Primary: Face landmarks detection
     detector = get_detector()
@@ -105,6 +108,9 @@ def run_scan(img: np.ndarray) -> Dict:
     else:
         logger.info("FaceMesh landmarks not found; engaging intelligent skin segmentation fallback.")
         masks = make_fallback_skin_masks(img_processed)
+
+    # Pre-compute shared color spaces ONCE for all 17 extractors (huge speed boost!)
+    context = SkinContext(img_processed, masks)
 
     # Clinical colormaps per category
     colormaps = {
@@ -150,17 +156,21 @@ def run_scan(img: np.ndarray) -> Dict:
     scores = {}
     overlays = {}
 
-    # Streamlined execution: compute one map at a time, score it, generate compressed overlay,
-    # and immediately free raw arrays so peak memory never exceeds ~80MB!
     from .visualize import create_heatmap_overlay
-    for name, func in map_functions.items():
-        raw_map = func(img_processed, masks)
-        scores[name] = score_from_map(raw_map, masks)
 
-        # Downsample map to max 300px for mobile overlay preview
+    # Streamlined execution: compute one map at a time using pre-computed context
+    for name, func in map_functions.items():
+        try:
+            raw_map = func(img_processed, masks, context=context)
+        except TypeError:
+            raw_map = func(img_processed, masks)
+
+        scores[name] = score_from_map(raw_map, masks, face_mask=context.face_mask)
+
+        # Downsample map to max 260px for mobile overlay preview (reduces memory & payload)
         mh, mw = raw_map.shape[:2]
-        if max(mh, mw) > 300:
-            scale = 300.0 / max(mh, mw)
+        if max(mh, mw) > 260:
+            scale = 260.0 / max(mh, mw)
             small_map = cv2.resize(raw_map, (int(mw * scale), int(mh * scale)), interpolation=cv2.INTER_AREA)
         else:
             small_map = raw_map
@@ -173,6 +183,7 @@ def run_scan(img: np.ndarray) -> Dict:
         del overlay_rgba
 
     regions = list(masks.keys())
+    del context
 
     return {
         "scores": scores,

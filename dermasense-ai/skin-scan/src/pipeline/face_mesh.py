@@ -141,6 +141,27 @@ def make_region_masks(landmarks: np.ndarray, img_shape: tuple) -> Dict[str, np.n
     cv2.fillConvexPoly(full_face, face_hull, 255)
     masks["full_face"] = full_face
 
+    # Non-skin feature exclusion (eyes, eyebrows, lips) to eliminate false positives
+    left_eye_hull = create_mask_from_indices([33, 7, 163, 144, 145, 153, 154, 155, 133, 173, 157, 158, 159, 160, 161, 246], (h, w))
+    right_eye_hull = create_mask_from_indices([362, 382, 381, 380, 374, 373, 390, 249, 263, 466, 388, 387, 386, 385, 384, 398], (h, w))
+    eyes_mask = cv2.bitwise_or(left_eye_hull, right_eye_hull)
+
+    lips_mask = create_mask_from_indices([61, 146, 91, 181, 84, 17, 314, 405, 321, 375, 291, 308, 324, 318, 402, 317, 14, 87, 178, 88, 95], (h, w))
+
+    left_brow = create_mask_from_indices([70, 63, 105, 66, 107, 55, 65, 52, 53, 46], (h, w))
+    right_brow = create_mask_from_indices([336, 296, 334, 293, 300, 276, 283, 282, 295, 285], (h, w))
+    brows_mask = cv2.bitwise_or(left_brow, right_brow)
+
+    exclusion_mask = cv2.bitwise_or(eyes_mask, lips_mask)
+    exclusion_mask = cv2.bitwise_or(exclusion_mask, brows_mask)
+    # Dilate slightly to avoid boundary artifacting
+    exclusion_mask = cv2.dilate(exclusion_mask, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5)))
+
+    # Subtract non-skin features from active skin zones
+    for key in ["forehead", "nose", "chin", "cheeks", "full_face"]:
+        if key in masks:
+            masks[key] = cv2.bitwise_and(masks[key], cv2.bitwise_not(exclusion_mask))
+
     return masks
 
 

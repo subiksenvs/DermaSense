@@ -3,27 +3,18 @@ import cv2
 import numpy as np
 
 
-def pores_map(img_bgr: np.ndarray, masks: dict[str, np.ndarray]) -> np.ndarray:
+def pores_map(img_bgr: np.ndarray, masks: dict[str, np.ndarray], context=None) -> np.ndarray:
     """
     Compute pore density map.
-
-    Uses Difference of Gaussians (DoG) high-pass filter followed by
-    Laplacian of Gaussian blob detection.
-
-    Args:
-        img_bgr: Input image in BGR format
-        masks: Dict of region masks
-
-    Returns:
-        Normalized pore density map [0, 1]
+    Uses Difference of Gaussians (DoG) high-pass filter followed by blob detection.
     """
-    # Convert to grayscale
-    gray = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2GRAY)
+    gray = context.gray if context is not None else cv2.cvtColor(img_bgr, cv2.COLOR_BGR2GRAY)
+    face_mask = context.face_mask if context is not None else None
 
-    # Create face mask
-    face_mask = np.zeros(img_bgr.shape[:2], dtype=bool)
-    for region_mask in masks.values():
-        face_mask |= region_mask > 0
+    if face_mask is None:
+        face_mask = np.zeros(img_bgr.shape[:2], dtype=bool)
+        for region_mask in masks.values():
+            face_mask |= region_mask > 0
 
     if not face_mask.any():
         return np.zeros(img_bgr.shape[:2], dtype=np.float32)
