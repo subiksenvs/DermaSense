@@ -1,14 +1,18 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../providers/skin_profile_provider.dart';
+import '../../services/ai_service.dart';
+import '../../providers/history_provider.dart';
+import '../../providers/notification_provider.dart';
 import '../../theme/app_theme.dart';
 import '../analysis/analysis_screen.dart';
 import '../profile/profile_screen.dart';
-import '../../widgets/glass_card.dart';
 import '../routine/routine_screen.dart';
-import '../chat/chat_screen.dart';
 import '../doctors/doctors_screen.dart';
+import '../history/history_screen.dart';
+import '../../widgets/ds/ds_card.dart';
+import '../../widgets/ds/ds_avatar.dart';
+import '../../widgets/ds/ds_progress.dart';
+import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -18,284 +22,70 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  String _dailyTip = "";
+  bool _isFetchingTip = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchDailyTip();
+  }
+
+  Future<void> _fetchDailyTip() async {
+    try {
+      final tip = await AiService().generateText(
+        prompt: "Provide a single, short, insightful daily skincare tip (maximum 2 sentences). Be highly informative and varied.",
+      );
+      if (mounted) {
+        setState(() {
+          _dailyTip = tip.isNotEmpty ? tip : "Stay hydrated and wear sunscreen every day!";
+          _isFetchingTip = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _dailyTip = "Remember to patch test new products before applying them fully.";
+          _isFetchingTip = false;
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.backgroundDark,
-      body: Stack(
-        children: [
-          // Background ambient glows
-          Positioned(
-            top: -100,
-            left: -100,
-            child: Container(
-              width: 300,
-              height: 300,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppTheme.primaryColor.withValues(alpha: 0.15),
-                boxShadow: [
-                  BoxShadow(color: AppTheme.primaryColor.withValues(alpha: 0.3), blurRadius: 100, spreadRadius: 100),
-                ],
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: -50,
-            right: -50,
-            child: Container(
-              width: 250,
-              height: 250,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppTheme.secondaryColor.withValues(alpha: 0.1),
-                boxShadow: [
-                  BoxShadow(color: AppTheme.secondaryColor.withValues(alpha: 0.2), blurRadius: 80, spreadRadius: 80),
-                ],
-              ),
-            ),
-          ),
-          
-          SafeArea(
-            bottom: false,
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.only(left: 24.0, right: 24.0, top: 24.0, bottom: 120.0),
+      backgroundColor: AppTheme.background,
+      body: CustomScrollView(
+        slivers: [
+          _buildAppBar(context),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppTheme.space24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Header
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                  AnimationLimiter(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: AnimationConfiguration.toStaggeredList(
+                        duration: const Duration(milliseconds: 600),
+                        childAnimationBuilder: (widget) => SlideAnimation(
+                          verticalOffset: 50.0,
+                          child: FadeInAnimation(child: widget),
+                        ),
                         children: [
-                          Text(
-                            "Good morning,",
-                            style: Theme.of(context).textTheme.bodyMedium,
-                          ),
-                          Text(
-                            context.watch<SkinProfileProvider>().profile.fullName.isEmpty 
-                              ? "User" 
-                              : context.watch<SkinProfileProvider>().profile.fullName,
-                            style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                              fontSize: 32,
-                              foreground: Paint()
-                                ..shader = const LinearGradient(
-                                  colors: [Colors.white, Color(0xFFB0B0C0)],
-                                ).createShader(const Rect.fromLTWH(0.0, 0.0, 200.0, 70.0)),
-                            ),
-                          ),
+                          const SizedBox(height: AppTheme.space24),
+                          _buildSkinScoreSection(context),
+                          const SizedBox(height: AppTheme.space40),
+                          _buildDiscoverSection(context),
+                          const SizedBox(height: AppTheme.space24),
+                          _buildDailyTipSection(context),
+                          const SizedBox(height: AppTheme.space24),
                         ],
                       ),
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => const ProfileScreen()),
-                          );
-                        },
-                        child: Container(
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.3), width: 2),
-                          ),
-                          child: Builder(
-                            builder: (context) {
-                              final profileImageUrl = context.watch<SkinProfileProvider>().profile.profileImageUrl;
-                              return CircleAvatar(
-                                radius: 26,
-                                backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.2),
-                                backgroundImage: profileImageUrl != null && profileImageUrl.isNotEmpty
-                                    ? NetworkImage(profileImageUrl)
-                                    : null,
-                                child: (profileImageUrl == null || profileImageUrl.isEmpty)
-                                    ? const Icon(Icons.person, color: AppTheme.primaryColor)
-                                    : null,
-                              );
-                            }
-                          ),
-                        ),
-                      )
-                    ],
-                  ),
-                  const SizedBox(height: 36),
-                  
-                  // Premium Skin Health Score Card (Glassmorphism)
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(32),
-                    child: BackdropFilter(
-                      filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-                      child: Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(28),
-                        decoration: BoxDecoration(
-                          color: AppTheme.surfaceColor.withValues(alpha: 0.4),
-                          borderRadius: BorderRadius.circular(32),
-                          border: Border.all(color: Colors.white.withValues(alpha: 0.15), width: 1.5),
-                          gradient: LinearGradient(
-                            colors: [
-                              AppTheme.surfaceColor.withValues(alpha: 0.6),
-                              AppTheme.surfaceColor.withValues(alpha: 0.2),
-                            ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                        ),
-                        child: Column(
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.auto_awesome, color: AppTheme.secondaryColor, size: 20),
-                                const SizedBox(width: 8),
-                                Text(
-                                  "OVERALL SKIN HEALTH",
-                                  style: TextStyle(
-                                    color: AppTheme.secondaryColor,
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w700,
-                                    letterSpacing: 2.0,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 16),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.baseline,
-                              textBaseline: TextBaseline.alphabetic,
-                              children: [
-                                ShaderMask(
-                                  shaderCallback: (bounds) => const LinearGradient(
-                                    colors: [AppTheme.secondaryColor, AppTheme.primaryColor],
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                  ).createShader(bounds),
-                                  child: const Text(
-                                    "82",
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 64,
-                                      fontWeight: FontWeight.w900,
-                                      letterSpacing: -2,
-                                    ),
-                                  ),
-                                ),
-                                Text(
-                                  "/100",
-                                  style: TextStyle(
-                                    color: Colors.white.withValues(alpha: 0.5),
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 16),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                              decoration: BoxDecoration(
-                                color: AppTheme.primaryColor.withValues(alpha: 0.2),
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.5)),
-                              ),
-                              child: const Text(
-                                "Excellent Progress",
-                                style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600, letterSpacing: 0.5),
-                              ),
-                            )
-                          ],
-                        ),
-                      ),
                     ),
                   ),
-                  const SizedBox(height: 40),
-                  
-                  Text(
-                    "Discover",
-                    style: Theme.of(context).textTheme.displayMedium?.copyWith(
-                      fontSize: 22,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  
-                  // Quick Actions grid
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      _buildQuickAction(context, Icons.center_focus_strong_rounded, "Analyze", AppTheme.primaryColor, () {
-                        Navigator.push(context, MaterialPageRoute(builder: (context) => const AnalysisScreen()));
-                      }),
-                      _buildQuickAction(context, Icons.medical_information_rounded, "Consult", AppTheme.secondaryColor, () {
-                        Navigator.push(context, MaterialPageRoute(builder: (context) => const DoctorsScreen()));
-                      }),
-                      _buildQuickAction(context, Icons.auto_awesome_mosaic_rounded, "Routine", AppTheme.errorColor, () {
-                        Navigator.push(context, MaterialPageRoute(builder: (context) => const RoutineScreen()));
-                      }),
-                      _buildQuickAction(context, Icons.forum_rounded, "Assistant", AppTheme.successColor, () {
-                        Navigator.push(context, MaterialPageRoute(builder: (context) => const ChatScreen()));
-                      }),
-                    ],
-                  ),
-                  const SizedBox(height: 40),
-                  
-                  Text(
-                    "Daily Insight",
-                    style: Theme.of(context).textTheme.displayMedium?.copyWith(
-                      fontSize: 22,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  
-                  // Insight Card
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(24),
-                    child: BackdropFilter(
-                      filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                      child: Container(
-                        padding: const EdgeInsets.all(20.0),
-                        decoration: BoxDecoration(
-                          color: AppTheme.surfaceColor.withValues(alpha: 0.6),
-                          borderRadius: BorderRadius.circular(24),
-                          border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
-                        ),
-                        child: Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: AppTheme.primaryColor.withValues(alpha: 0.2),
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(
-                                Icons.water_drop_rounded,
-                                color: Colors.white,
-                                size: 28,
-                              ),
-                            ),
-                            const SizedBox(width: 20),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text(
-                                    "Hydration Alert",
-                                    style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16, color: Colors.white),
-                                  ),
-                                  const SizedBox(height: 6),
-                                  Text(
-                                    "Your skin appears slightly dehydrated today. Use a gentle moisturizer.",
-                                    style: TextStyle(color: AppTheme.textSecondary, fontSize: 13, height: 1.4),
-                                  ),
-                                ],
-                              ),
-                            )
-                          ],
-                        ),
-                      ),
-                    ),
-                  )
                 ],
               ),
             ),
@@ -305,38 +95,372 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildQuickAction(BuildContext context, IconData icon, String label, Color accentColor, VoidCallback onTap) {
-    return Column(
-      children: [
-        GlassCard(
-          padding: EdgeInsets.zero,
-          borderRadius: 20,
-          onTap: onTap,
-          child: Container(
-            width: 70,
-            height: 70,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20),
-              gradient: LinearGradient(
-                colors: [accentColor.withValues(alpha: 0.3), accentColor.withValues(alpha: 0.05)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
+  Widget _buildAppBar(BuildContext context) {
+    return SliverAppBar(
+      backgroundColor: AppTheme.background,
+      pinned: true,
+      floating: false,
+      elevation: 0,
+      scrolledUnderElevation: 0,
+      toolbarHeight: 80,
+      titleSpacing: AppTheme.space24,
+      centerTitle: false,
+      title: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          RichText(
+            text: TextSpan(
+              style: Theme.of(context).textTheme.headlineLarge?.copyWith(fontSize: 24, letterSpacing: -0.5),
+              children: const [
+                TextSpan(text: "Derma", style: TextStyle(color: Colors.white)),
+                TextSpan(text: "Sense", style: TextStyle(color: AppTheme.primaryColor)),
+              ],
             ),
-            child: Icon(icon, color: accentColor, size: 30),
+          ),
+          const SizedBox(height: 2),
+          const Text(
+            "INTELLIGENT SKIN CARE",
+            style: TextStyle(
+              color: AppTheme.textSecondary,
+              letterSpacing: 1.2,
+              fontSize: 8,
+              fontWeight: FontWeight.w700,
+              fontFamily: 'Outfit',
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        Consumer<NotificationProvider>(
+          builder: (context, provider, child) {
+            return Badge(
+              isLabelVisible: provider.unreadCount > 0,
+              label: Text(provider.unreadCount.toString()),
+              offset: const Offset(-4, 4),
+              child: IconButton(
+                icon: const Icon(Icons.notifications_none, color: AppTheme.textSecondary),
+                onPressed: () {
+                  Navigator.pushNamed(context, '/notifications');
+                },
+              ),
+            );
+          },
+        ),
+        const SizedBox(width: AppTheme.space8),
+        DSAvatar(
+          radius: 18,
+          onTap: () {
+            Navigator.push(context, MaterialPageRoute(builder: (context) => const ProfileScreen()));
+          },
+        ),
+        const SizedBox(width: AppTheme.space24),
+      ],
+    );
+  }
+
+  Widget _buildSkinScoreSection(BuildContext context) {
+    return Consumer<HistoryProvider>(
+      builder: (context, historyProvider, child) {
+        if (historyProvider.records.isEmpty) {
+          return DSCard(
+            width: double.infinity,
+            variant: DSCardVariant.elevated,
+            onTap: () {
+              Navigator.push(context, MaterialPageRoute(builder: (context) => const AnalysisScreen()));
+            },
+            child: Column(
+              children: [
+                Icon(Icons.camera_alt_outlined, color: AppTheme.primary, size: 48),
+                const SizedBox(height: AppTheme.space16),
+                Text(
+                  "Analyze to see recommendations",
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const SizedBox(height: AppTheme.space8),
+                Text(
+                  "Take a skin scan to get your personalized AM/PM routine.",
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+              ],
+            ),
+          );
+        }
+
+        final latestRecord = historyProvider.records.first;
+        final latestScore = latestRecord.overallScore;
+        final hasHistory = historyProvider.records.length > 1;
+        
+        int diff = 0;
+        if (hasHistory) {
+          diff = latestScore - historyProvider.records[1].overallScore;
+        }
+
+        return DSCard(
+          width: double.infinity,
+          variant: DSCardVariant.elevated,
+          padding: const EdgeInsets.all(AppTheme.space32),
+          child: Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.auto_awesome, color: AppTheme.primaryColor, size: 16),
+                  const SizedBox(width: AppTheme.space8),
+                  Text(
+                    "SKIN SCORE",
+                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                          color: AppTheme.primaryColor,
+                          letterSpacing: 2.0,
+                          fontSize: 12,
+                        ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppTheme.space24),
+              DSProgressCircle(
+                value: latestScore / 100.0,
+                size: 160,
+                strokeWidth: 12,
+                centerText: "$latestScore",
+                centerSubText: "/100",
+                color: AppTheme.primary,
+                backgroundColor: AppTheme.surfaceHighlight,
+              ),
+              const SizedBox(height: AppTheme.space24),
+              if (hasHistory)
+                if (diff != 0)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: AppTheme.space12, vertical: AppTheme.space4),
+                    decoration: BoxDecoration(
+                      color: diff > 0 ? AppTheme.success.withValues(alpha: 0.1) : AppTheme.warning.withValues(alpha: 0.1),
+                      borderRadius: AppTheme.borderRadiusPill,
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          diff > 0 ? Icons.trending_up : Icons.trending_down,
+                          color: diff > 0 ? AppTheme.success : AppTheme.warning,
+                          size: 16,
+                        ),
+                        const SizedBox(width: AppTheme.space4),
+                        Text(
+                          "${diff.abs()} points ${diff > 0 ? 'higher' : 'lower'} than last time",
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: diff > 0 ? AppTheme.success : AppTheme.warning,
+                                fontWeight: FontWeight.w600,
+                              ),
+                        ),
+                      ],
+                    ),
+                  )
+                else
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: AppTheme.space12, vertical: AppTheme.space4),
+                    decoration: BoxDecoration(
+                      color: AppTheme.info.withValues(alpha: 0.1),
+                      borderRadius: AppTheme.borderRadiusPill,
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.trending_flat,
+                          color: AppTheme.info,
+                          size: 16,
+                        ),
+                        const SizedBox(width: AppTheme.space4),
+                        Text(
+                          "No change from last time",
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: AppTheme.info,
+                                fontWeight: FontWeight.w600,
+                              ),
+                        ),
+                      ],
+                    ),
+                  )
+              else
+                Text(
+                  "Great start on your journey!",
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildDiscoverSection(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text("Discover", style: Theme.of(context).textTheme.titleLarge),
+        const SizedBox(height: AppTheme.space16),
+        GridView.count(
+          padding: EdgeInsets.zero,
+          crossAxisCount: 2,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          mainAxisSpacing: AppTheme.space16,
+          crossAxisSpacing: AppTheme.space16,
+          childAspectRatio: 1.1,
+          children: [
+            _buildFeatureCard(
+              context,
+              "Analyze",
+              "Scan your skin",
+              Icons.document_scanner_outlined,
+              AppTheme.primary,
+              () => Navigator.push(context, MaterialPageRoute(builder: (context) => const AnalysisScreen())),
+            ),
+            _buildFeatureCard(
+              context,
+              "Routine",
+              "Your AM/PM plan",
+              Icons.spa_outlined,
+              AppTheme.secondary,
+              () => Navigator.push(context, MaterialPageRoute(builder: (context) => const RoutineScreen())),
+            ),
+            _buildFeatureCard(
+              context,
+              "Analytics",
+              "Score History",
+              Icons.history,
+              AppTheme.secondary,
+              () => Navigator.push(context, MaterialPageRoute(builder: (context) => const HistoryScreen())),
+            ),
+            _buildFeatureCard(
+              context,
+              "Consult",
+              "Talk to experts",
+              Icons.medical_services_outlined,
+              AppTheme.info,
+              () => Navigator.push(context, MaterialPageRoute(builder: (context) => const DoctorsScreen())),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFeatureCard(BuildContext context, String title, String subtitle, IconData icon, Color accent, VoidCallback onTap) {
+    return DSCard(
+      variant: DSCardVariant.base,
+      padding: const EdgeInsets.all(AppTheme.space16),
+      onTap: onTap,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(AppTheme.space12),
+            decoration: BoxDecoration(
+              color: accent.withValues(alpha: 0.1),
+              borderRadius: AppTheme.borderRadiusMedium,
+            ),
+            child: Icon(icon, color: accent, size: 24),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title, style: Theme.of(context).textTheme.titleMedium),
+              const SizedBox(height: AppTheme.space4),
+              Text(subtitle, style: Theme.of(context).textTheme.bodySmall),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDailyTipSection(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text("Daily Insight", style: Theme.of(context).textTheme.titleLarge),
+        const SizedBox(height: AppTheme.space16),
+        DSCard(
+          width: double.infinity,
+          variant: DSCardVariant.outline,
+          padding: const EdgeInsets.all(AppTheme.space20),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(AppTheme.space12),
+                decoration: BoxDecoration(
+                  color: AppTheme.surfaceHighlight,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.lightbulb_outline, color: AppTheme.primaryLight, size: 20),
+              ),
+              const SizedBox(width: AppTheme.space16),
+              Expanded(
+                child: _isFetchingTip
+                    ? const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 4),
+                        child: SkeletonPulse(),
+                      )
+                    : Text(
+                        _dailyTip,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(height: 1.5),
+                      ),
+              ),
+            ],
           ),
         ),
-        const SizedBox(height: 12),
-        Text(
-          label,
-          style: TextStyle(
-            color: Colors.white.withValues(alpha: 0.9),
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-            letterSpacing: 0.3,
-          ),
-        )
       ],
+    );
+  }
+}
+
+class SkeletonPulse extends StatefulWidget {
+  const SkeletonPulse({super.key});
+
+  @override
+  State<SkeletonPulse> createState() => _SkeletonPulseState();
+}
+
+class _SkeletonPulseState extends State<SkeletonPulse> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 1000))..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FadeTransition(
+      opacity: Tween<double>(begin: 0.3, end: 1.0).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            height: 12,
+            width: double.infinity,
+            decoration: BoxDecoration(color: AppTheme.surfaceHighlight, borderRadius: BorderRadius.circular(6)),
+          ),
+          const SizedBox(height: 8),
+          Container(
+            height: 12,
+            width: 120,
+            decoration: BoxDecoration(color: AppTheme.surfaceHighlight, borderRadius: BorderRadius.circular(6)),
+          ),
+        ],
+      ),
     );
   }
 }
