@@ -3,15 +3,10 @@ import cv2
 import numpy as np
 
 
-def preprocess(img_bgr: np.ndarray, max_size: int = 1024) -> np.ndarray:
+def preprocess(img_bgr: np.ndarray, max_size: int = 640) -> np.ndarray:
     """
     Preprocess image for skin analysis.
-
-    Steps:
-    1. Resize to max dimension
-    2. Color constancy (gray-world assumption)
-    3. CLAHE for contrast enhancement
-    4. Gamma correction
+    Resizes efficiently to max dimension while preserving natural skin color fidelity.
 
     Args:
         img_bgr: Input BGR image
@@ -20,7 +15,6 @@ def preprocess(img_bgr: np.ndarray, max_size: int = 1024) -> np.ndarray:
     Returns:
         Preprocessed BGR image
     """
-    # Resize if needed
     h, w = img_bgr.shape[:2]
     if max(h, w) > max_size:
         scale = max_size / max(h, w)
@@ -28,23 +22,8 @@ def preprocess(img_bgr: np.ndarray, max_size: int = 1024) -> np.ndarray:
         new_h = int(h * scale)
         img_bgr = cv2.resize(img_bgr, (new_w, new_h), interpolation=cv2.INTER_AREA)
 
-    # Gray-world color constancy
-    img_bgr = gray_world_normalization(img_bgr)
-
-    # CLAHE for contrast enhancement on L channel
-    lab = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2LAB)
-    l, a, b = cv2.split(lab)
-
-    clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
-    l = clahe.apply(l)
-
-    lab = cv2.merge([l, a, b])
-    img_bgr = cv2.cvtColor(lab, cv2.COLOR_LAB2BGR)
-
-    # Gamma correction (slight brightening)
-    img_bgr = gamma_correction(img_bgr, gamma=1.1)
-
     return img_bgr
+
 
 
 def gray_world_normalization(img_bgr: np.ndarray) -> np.ndarray:

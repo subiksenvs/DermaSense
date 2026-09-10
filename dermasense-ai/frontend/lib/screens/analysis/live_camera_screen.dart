@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'result_screen.dart';
 import '../../services/analysis_service.dart';
+import '../../theme/app_theme.dart';
 
 class LiveCameraScreen extends StatefulWidget {
   const LiveCameraScreen({super.key});
@@ -111,7 +112,7 @@ class _LiveCameraScreenState extends State<LiveCameraScreen>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text("Analysis failed: $e"),
-            backgroundColor: Colors.red,
+            backgroundColor: AppTheme.error,
           ),
         );
       }
@@ -218,9 +219,15 @@ class _LiveCameraScreenState extends State<LiveCameraScreen>
           Positioned(
             top: MediaQuery.of(context).padding.top + 16,
             left: 16,
-            child: IconButton(
-              icon: const Icon(Icons.close, color: Colors.white, size: 32),
-              onPressed: () => Navigator.pop(context),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Theme.of(context).scaffoldBackgroundColor,
+                shape: BoxShape.circle,
+              ),
+              child: IconButton(
+                icon: const Icon(Icons.arrow_back, color: Colors.white, size: 24),
+                onPressed: () => Navigator.pop(context),
+              ),
             ),
           ),
 

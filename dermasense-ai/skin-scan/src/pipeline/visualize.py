@@ -99,7 +99,7 @@ def generate_all_overlays(
         Dict of RGBA overlays
     """
     if colormaps is None:
-        # Default colormaps per category
+        # Clinical colormaps per category
         colormaps = {
             "redness": cv2.COLORMAP_HOT,
             "oiliness": cv2.COLORMAP_VIRIDIS,
@@ -108,6 +108,16 @@ def generate_all_overlays(
             "blemishes": cv2.COLORMAP_AUTUMN,
             "hydration": cv2.COLORMAP_OCEAN,
             "pigment": cv2.COLORMAP_PINK,
+            "wrinkles": cv2.COLORMAP_MAGMA,
+            "dark_circles": cv2.COLORMAP_TWILIGHT,
+            "eye_bags": cv2.COLORMAP_INFERNO,
+            "firmness": cv2.COLORMAP_CIVIDIS,
+            "radiance": cv2.COLORMAP_SUMMER,
+            "tone_evenness": cv2.COLORMAP_TURBO,
+            "sun_damage": cv2.COLORMAP_JET,
+            "pore_dilation": cv2.COLORMAP_COOL,
+            "barrier_health": cv2.COLORMAP_SPRING,
+            "acne_severity": cv2.COLORMAP_HOT,
         }
 
     overlays = {}
