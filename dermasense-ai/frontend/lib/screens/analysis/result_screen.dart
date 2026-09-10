@@ -19,7 +19,8 @@ class _ResultScreenState extends State<ResultScreen> {
   late final PageController _heatmapPageController;
   late final ScrollController _chipsScrollController;
   int _currentHeatmapIndex = 0;
-  bool _showRawImage = false;
+  String? _activeRealKey; // Only the selected biomarker displays real camera image
+  final Map<int, GlobalKey> _chipKeyMap = {};
 
   // Metadata for each biomarker: Label, Icon, Anatomical Zone, and Accent Color
   static const Map<String, _BiomarkerMeta> _biomarkerMeta = {
@@ -147,7 +148,7 @@ class _ResultScreenState extends State<ResultScreen> {
   @override
   void initState() {
     super.initState();
-    _heatmapPageController = PageController(viewportFraction: 0.90);
+    _heatmapPageController = PageController(viewportFraction: 0.85);
     _chipsScrollController = ScrollController();
   }
 
@@ -158,30 +159,50 @@ class _ResultScreenState extends State<ResultScreen> {
     super.dispose();
   }
 
+  void _scrollChipToCenter(int index) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final chipKey = _chipKeyMap[index];
+      final keyContext = chipKey?.currentContext;
+      if (keyContext != null) {
+        Scrollable.ensureVisible(
+          keyContext,
+          alignment: 0.5,
+          duration: const Duration(milliseconds: 350),
+          curve: Curves.easeOutCubic,
+        );
+      } else if (_chipsScrollController.hasClients) {
+        final screenWidth = MediaQuery.of(context).size.width;
+        const approxChipWidth = 140.0;
+        final target = (index * approxChipWidth) - (screenWidth / 2) + (approxChipWidth / 2);
+        _chipsScrollController.animateTo(
+          target.clamp(0.0, _chipsScrollController.position.maxScrollExtent),
+          duration: const Duration(milliseconds: 350),
+          curve: Curves.easeOutCubic,
+        );
+      }
+    });
+  }
+
   void _onHeatmapSwiped(int index, List<String> keys) {
     setState(() {
       _currentHeatmapIndex = index;
+      _activeRealKey = null; // Revert back to normal heatmap when tab switched
     });
-
-    // Auto-scroll the top horizontal chip list to keep the active item centered
-    if (_chipsScrollController.hasClients) {
-      const chipApproxWidth = 135.0;
-      final screenWidth = MediaQuery.of(context).size.width;
-      final targetScroll = (index * chipApproxWidth) - (screenWidth / 2) + (chipApproxWidth / 2);
-      _chipsScrollController.animateTo(
-        targetScroll.clamp(0.0, _chipsScrollController.position.maxScrollExtent),
-        duration: const Duration(milliseconds: 350),
-        curve: Curves.easeOutCubic,
-      );
-    }
+    _scrollChipToCenter(index);
   }
 
   void _onChipTapped(int index) {
+    setState(() {
+      _currentHeatmapIndex = index;
+      _activeRealKey = null; // Revert back to normal heatmap when tab switched
+    });
     _heatmapPageController.animateToPage(
       index,
       duration: const Duration(milliseconds: 350),
       curve: Curves.easeInOutCubic,
     );
+    _scrollChipToCenter(index);
   }
 
   @override
@@ -466,62 +487,65 @@ class _ResultScreenState extends State<ResultScreen> {
         // Synchronized Horizontal Biomarker Selector Tabs
         SizedBox(
           height: 42,
-          child: ListView.builder(
+          child: SingleChildScrollView(
             controller: _chipsScrollController,
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: AppTheme.space20),
-            itemCount: keys.length,
-            itemBuilder: (context, index) {
-              final key = keys[index];
-              final meta = _biomarkerMeta[key];
-              final isSelected = index == _currentHeatmapIndex;
-              final color = meta?.color ?? AppTheme.primary;
+            child: Row(
+              children: List.generate(keys.length, (index) {
+                final key = keys[index];
+                final meta = _biomarkerMeta[key];
+                final isSelected = index == _currentHeatmapIndex;
+                final color = meta?.color ?? AppTheme.primary;
+                final chipKey = _chipKeyMap.putIfAbsent(index, () => GlobalKey());
 
-              return GestureDetector(
-                onTap: () => _onChipTapped(index),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 250),
-                  margin: const EdgeInsets.only(right: 8),
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: isSelected ? color.withValues(alpha: 0.22) : AppTheme.surfaceElevated,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: isSelected ? color : Colors.white.withValues(alpha: 0.08),
-                      width: isSelected ? 1.5 : 1.0,
+                return GestureDetector(
+                  key: chipKey,
+                  onTap: () => _onChipTapped(index),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 250),
+                    margin: const EdgeInsets.only(right: 8),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: isSelected ? color.withValues(alpha: 0.22) : AppTheme.surfaceElevated,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: isSelected ? color : Colors.white.withValues(alpha: 0.08),
+                        width: isSelected ? 1.5 : 1.0,
+                      ),
+                      boxShadow: isSelected
+                          ? [
+                              BoxShadow(
+                                color: color.withValues(alpha: 0.25),
+                                blurRadius: 10,
+                                offset: const Offset(0, 2),
+                              )
+                            ]
+                          : null,
                     ),
-                    boxShadow: isSelected
-                        ? [
-                            BoxShadow(
-                              color: color.withValues(alpha: 0.25),
-                              blurRadius: 10,
-                              offset: const Offset(0, 2),
-                            )
-                          ]
-                        : null,
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        meta?.icon ?? Icons.circle,
-                        size: 15,
-                        color: isSelected ? color : AppTheme.textSecondary,
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        meta?.label ?? key,
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                          color: isSelected ? Colors.white : AppTheme.textSecondary,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          meta?.icon ?? Icons.circle,
+                          size: 15,
+                          color: isSelected ? color : AppTheme.textSecondary,
                         ),
-                      ),
-                    ],
+                        const SizedBox(width: 6),
+                        Text(
+                          meta?.label ?? key,
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                            color: isSelected ? Colors.white : AppTheme.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              );
-            },
+                );
+              }),
+            ),
           ),
         ),
         const SizedBox(height: 16),
@@ -530,7 +554,7 @@ class _ResultScreenState extends State<ResultScreen> {
         // SWIPEABLE PAGEVIEW CAROUSEL
         // ==========================================
         SizedBox(
-          height: 380,
+          height: 385,
           child: PageView.builder(
             controller: _heatmapPageController,
             onPageChanged: (index) => _onHeatmapSwiped(index, keys),
@@ -570,10 +594,11 @@ class _ResultScreenState extends State<ResultScreen> {
               }
 
               final overlayBase64 = overlays[key] as String?;
+              final isShowingReal = _activeRealKey == key;
 
               return AnimatedPadding(
                 duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(horizontal: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 child: Container(
                   decoration: BoxDecoration(
                     color: AppTheme.surfaceBase,
@@ -599,7 +624,7 @@ class _ResultScreenState extends State<ResultScreen> {
                         // 1. Base Image: Either Heatmap or Natural Photo based on toggle
                         AnimatedCrossFade(
                           duration: const Duration(milliseconds: 250),
-                          crossFadeState: _showRawImage || overlayBase64 == null
+                          crossFadeState: isShowingReal || overlayBase64 == null
                               ? CrossFadeState.showSecond
                               : CrossFadeState.showFirst,
                           firstChild: overlayBase64 != null
@@ -662,32 +687,45 @@ class _ResultScreenState extends State<ResultScreen> {
                                 ),
                               ),
 
-                              // Quick Compare Button ("Tap to View Original")
+                              // Quick Compare Button ("Tap or Hold to View Real Image")
                               GestureDetector(
-                                onTapDown: (_) => setState(() => _showRawImage = true),
-                                onTapUp: (_) => setState(() => _showRawImage = false),
-                                onTapCancel: () => setState(() => _showRawImage = false),
+                                behavior: HitTestBehavior.opaque,
+                                onTap: () {
+                                  setState(() {
+                                    if (_activeRealKey == key) {
+                                      _activeRealKey = null; // Revert back to normal
+                                    } else {
+                                      _activeRealKey = key; // Only this image becomes real!
+                                    }
+                                  });
+                                },
+                                onLongPressStart: (_) {
+                                  setState(() => _activeRealKey = key);
+                                },
+                                onLongPressEnd: (_) {
+                                  setState(() => _activeRealKey = null); // Revert on release
+                                },
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                                   decoration: BoxDecoration(
-                                    color: _showRawImage
+                                    color: isShowingReal
                                         ? AppTheme.primary
                                         : Colors.black.withValues(alpha: 0.65),
                                     borderRadius: BorderRadius.circular(16),
                                     border: Border.all(
-                                      color: _showRawImage ? AppTheme.primaryLight : Colors.white24,
+                                      color: isShowingReal ? AppTheme.primaryLight : Colors.white24,
                                     ),
                                   ),
                                   child: Row(
                                     children: [
                                       Icon(
-                                        _showRawImage ? Icons.visibility : Icons.compare_rounded,
+                                        isShowingReal ? Icons.visibility : Icons.compare_rounded,
                                         size: 14,
                                         color: Colors.white,
                                       ),
                                       const SizedBox(width: 5),
                                       Text(
-                                        _showRawImage ? "Natural Photo" : "Hold for Real",
+                                        isShowingReal ? "Natural Photo" : "Hold for Real",
                                         style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600),
                                       ),
                                     ],
