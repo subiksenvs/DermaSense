@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Privacy Policy | DermaSense AI</title>
     <meta name="description" content="Official Privacy Policy for DermaSense - AI-powered Skin Analysis and Health Tracking Application.">
+    <link rel="icon" type="image/png" href="logo.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
@@ -57,7 +58,7 @@
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
             border-bottom: 1px solid var(--border);
-            padding: 14px 24px;
+            padding: 12px 24px;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -84,17 +85,13 @@
             letter-spacing: -0.02em;
         }
 
-        .brand-icon {
+        .brand-logo-img {
             width: 38px;
             height: 38px;
-            background: linear-gradient(135deg, #0284c7 0%, #0d9488 100%);
             border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #ffffff;
-            font-size: 1.15rem;
-            box-shadow: 0 4px 12px rgba(13, 148, 136, 0.3);
+            object-fit: cover;
+            box-shadow: 0 4px 12px rgba(13, 148, 136, 0.25);
+            border: 1px solid rgba(255, 255, 255, 0.8);
         }
 
         .nav-actions {
@@ -130,7 +127,7 @@
         .hero {
             background: radial-gradient(100% 100% at 50% 0%, #0f172a 0%, #0b1329 60%, #030712 100%);
             color: #ffffff;
-            padding: 80px 24px 90px;
+            padding: 70px 24px 85px;
             text-align: center;
             position: relative;
             overflow: hidden;
@@ -156,6 +153,27 @@
             z-index: 1;
         }
 
+        .hero-logo-wrapper {
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .hero-app-logo {
+            width: 84px;
+            height: 84px;
+            border-radius: 22px;
+            box-shadow: 0 14px 35px rgba(2, 132, 199, 0.35), 0 0 0 3px rgba(255, 255, 255, 0.2);
+            background: #ffffff;
+            padding: 4px;
+            object-fit: contain;
+            transition: transform 0.3s ease;
+        }
+
+        .hero-app-logo:hover {
+            transform: scale(1.05) rotate(2deg);
+        }
+
         .pill-badge {
             display: inline-flex;
             align-items: center;
@@ -168,7 +186,7 @@
             font-weight: 600;
             letter-spacing: 0.5px;
             text-transform: uppercase;
-            margin-bottom: 20px;
+            margin-bottom: 18px;
             border: 1px solid rgba(255, 255, 255, 0.18);
             color: #38bdf8;
         }
@@ -483,6 +501,20 @@
             margin-top: 14px;
         }
 
+        .contact-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .contact-logo {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            object-fit: contain;
+        }
+
         .contact-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -545,6 +577,14 @@
             flex-direction: column;
             align-items: center;
             gap: 14px;
+        }
+
+        .footer-logo {
+            width: 30px;
+            height: 30px;
+            border-radius: 6px;
+            vertical-align: middle;
+            margin-right: 6px;
         }
 
         .footer-links {
@@ -614,7 +654,7 @@
     <nav class="navbar">
         <div class="nav-container">
             <a href="#" class="brand-logo">
-                <div class="brand-icon"><i class="fa-solid fa-heart-pulse"></i></div>
+                <img src="logo.png" alt="DermaSense Logo" class="brand-logo-img">
                 <span>DermaSense</span>
             </a>
             <div class="nav-actions">
@@ -633,6 +673,9 @@
     <!-- Hero Header -->
     <header class="hero">
         <div class="hero-container">
+            <div class="hero-logo-wrapper">
+                <img src="logo.png" alt="DermaSense App Icon" class="hero-app-logo">
+            </div>
             <div class="pill-badge">
                 <i class="fa-solid fa-shield-halved"></i> Official Privacy Policy
             </div>
@@ -842,7 +885,10 @@
                 <p>If you have any questions, feedback, or concerns regarding this Privacy Policy or our data handling practices, please contact us:</p>
 
                 <div class="contact-box">
-                    <h3 style="margin-top:0; color: #1e3a8a;">DermaSense Compliance & Support</h3>
+                    <div class="contact-header">
+                        <img src="logo.png" alt="DermaSense" class="contact-logo">
+                        <h3 style="margin:0; color: #1e3a8a;">DermaSense Compliance & Support</h3>
+                    </div>
                     <div class="contact-grid">
                         <div class="contact-entry">
                             <div class="contact-icon-bubble"><i class="fa-solid fa-user-tie"></i></div>
@@ -875,7 +921,7 @@
     <!-- Footer -->
     <footer>
         <div class="footer-container">
-            <p>&copy; 2026 DermaSense AI (<code>com.dermasense.app</code>). All rights reserved.</p>
+            <p><img src="logo.png" alt="DermaSense" class="footer-logo">&copy; 2026 DermaSense AI (<code>com.dermasense.app</code>). All rights reserved.</p>
             <ul class="footer-links">
                 <li><a href="#section-overview">Overview</a></li>
                 <li><a href="#section-collection">Data Collection</a></li>
