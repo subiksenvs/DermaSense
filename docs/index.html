@@ -3,31 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Privacy Policy - DermaSense</title>
+    <title>Privacy Policy | DermaSense AI</title>
+    <meta name="description" content="Official Privacy Policy for DermaSense - AI-powered Skin Analysis and Health Tracking Application.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         :root {
-            --primary: #2563eb;
-            --primary-dark: #1d4ed8;
-            --primary-light: #eff6ff;
+            --primary: #0284c7;
+            --primary-dark: #0369a1;
+            --primary-glow: rgba(2, 132, 199, 0.15);
             --secondary: #0d9488;
-            --accent: #06b6d4;
-            --text-main: #0f172a;
-            --text-muted: #64748b;
+            --secondary-light: #ccfbf1;
+            --accent: #6366f1;
             --bg-page: #f8fafc;
-            --bg-card: #ffffff;
+            --bg-surface: #ffffff;
+            --bg-subtle: #f1f5f9;
+            --text-main: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
             --border: #e2e8f0;
-            --radius-lg: 16px;
+            --border-hover: #cbd5e1;
+            --radius-xl: 20px;
+            --radius-lg: 14px;
             --radius-md: 10px;
-            --shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.05), 0 8px 10px -6px rgba(15, 23, 42, 0.03);
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
+            --shadow-md: 0 10px 25px -5px rgba(15, 23, 42, 0.06), 0 8px 10px -6px rgba(15, 23, 42, 0.04);
+            --shadow-lg: 0 20px 35px -10px rgba(15, 23, 42, 0.08), 0 10px 15px -8px rgba(15, 23, 42, 0.05);
         }
 
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            scroll-behavior: smooth;
         }
 
         body {
@@ -35,183 +45,564 @@
             background-color: var(--bg-page);
             color: var(--text-main);
             line-height: 1.7;
-            padding: 0;
-            margin: 0;
             -webkit-font-smoothing: antialiased;
         }
 
-        header {
-            background: linear-gradient(135deg, #1e3a8a 0%, #0d9488 100%);
-            color: #ffffff;
-            padding: 60px 20px 70px;
-            text-align: center;
-            position: relative;
+        /* Top Navigation Bar */
+        .navbar {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border);
+            padding: 14px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
 
-        .header-content {
-            max-width: 800px;
+        .nav-container {
+            max-width: 1200px;
+            width: 100%;
             margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
 
-        .badge {
-            display: inline-block;
-            background: rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(8px);
-            padding: 6px 16px;
-            border-radius: 9999px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-            margin-bottom: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-        }
-
-        h1 {
-            font-size: 2.75rem;
+        .brand-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            color: var(--text-main);
             font-weight: 800;
-            margin-bottom: 12px;
+            font-size: 1.35rem;
+            font-family: 'Space Grotesk', sans-serif;
             letter-spacing: -0.02em;
         }
 
-        .subtitle {
+        .brand-icon {
+            width: 38px;
+            height: 38px;
+            background: linear-gradient(135deg, #0284c7 0%, #0d9488 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
             font-size: 1.15rem;
-            opacity: 0.9;
-            font-weight: 400;
-            max-width: 600px;
-            margin: 0 auto;
+            box-shadow: 0 4px 12px rgba(13, 148, 136, 0.3);
         }
 
-        .last-updated {
-            margin-top: 14px;
-            font-size: 0.875rem;
-            opacity: 0.75;
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
 
-        .container {
-            max-width: 860px;
-            margin: -35px auto 60px;
-            padding: 0 20px;
-            position: relative;
-        }
-
-        .card {
-            background: var(--bg-card);
-            border-radius: var(--radius-lg);
+        .btn-outline {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 9999px;
             border: 1px solid var(--border);
-            box-shadow: var(--shadow);
-            padding: 40px;
-            margin-bottom: 24px;
+            background: var(--bg-surface);
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            cursor: pointer;
         }
 
-        h2 {
-            font-size: 1.45rem;
-            font-weight: 700;
-            color: #1e293b;
-            margin-top: 28px;
+        .btn-outline:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: var(--primary-glow);
+            transform: translateY(-1px);
+        }
+
+        /* Hero Header Section */
+        .hero {
+            background: radial-gradient(100% 100% at 50% 0%, #0f172a 0%, #0b1329 60%, #030712 100%);
+            color: #ffffff;
+            padding: 80px 24px 90px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 650px;
+            height: 350px;
+            background: radial-gradient(circle, rgba(13, 148, 136, 0.25) 0%, rgba(2, 132, 199, 0.15) 50%, transparent 70%);
+            filter: blur(50px);
+            pointer-events: none;
+        }
+
+        .hero-container {
+            max-width: 780px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .pill-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 6px 18px;
+            border-radius: 9999px;
+            font-size: 0.825rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            color: #38bdf8;
+        }
+
+        .hero h1 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 3.25rem;
+            font-weight: 800;
+            line-height: 1.15;
+            letter-spacing: -0.03em;
+            margin-bottom: 16px;
+            background: linear-gradient(180deg, #ffffff 0%, #cbd5e1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p.lead {
+            font-size: 1.18rem;
+            color: #94a3b8;
+            max-width: 620px;
+            margin: 0 auto 24px;
+            font-weight: 400;
+        }
+
+        .meta-tags {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            font-size: 0.875rem;
+            color: #64748b;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Pillars Highlights Cards */
+        .pillars-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 16px;
+            max-width: 1140px;
+            margin: -45px auto 40px;
+            padding: 0 24px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .pillar-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 22px;
+            box-shadow: var(--shadow-md);
+            transition: all 0.25s ease;
+        }
+
+        .pillar-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--primary);
+        }
+
+        .pillar-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
             margin-bottom: 14px;
+        }
+
+        .icon-blue { background: #e0f2fe; color: #0284c7; }
+        .icon-teal { background: #ccfbf1; color: #0d9488; }
+        .icon-purple { background: #f3e8ff; color: #9333ea; }
+        .icon-amber { background: #fef3c7; color: #d97706; }
+
+        .pillar-card h3 {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 6px;
+        }
+
+        .pillar-card p {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            margin: 0;
+        }
+
+        /* Main Content Layout with Sticky Sidebar */
+        .layout-container {
+            max-width: 1140px;
+            margin: 0 auto 80px;
+            padding: 0 24px;
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 36px;
+            align-items: start;
+        }
+
+        /* Sidebar Navigation */
+        .sidebar {
+            position: sticky;
+            top: 90px;
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .sidebar-title {
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: var(--text-muted);
+            margin-bottom: 14px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .toc-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .toc-link {
             display: flex;
             align-items: center;
             gap: 10px;
+            padding: 8px 12px;
+            border-radius: var(--radius-md);
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.2s ease;
         }
 
-        h2:first-of-type {
-            margin-top: 0;
-        }
-
-        h3 {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: #334155;
-            margin-top: 18px;
-            margin-bottom: 8px;
-        }
-
-        p {
-            margin-bottom: 14px;
-            color: #475569;
-            font-size: 1rem;
-        }
-
-        ul {
-            margin-bottom: 16px;
-            padding-left: 24px;
-            color: #475569;
-        }
-
-        li {
-            margin-bottom: 8px;
-        }
-
-        .highlight-box {
+        .toc-link:hover, .toc-link.active {
             background: var(--primary-light);
-            border-left: 4px solid var(--primary);
-            padding: 16px 20px;
-            border-radius: 0 var(--radius-md) var(--radius-md) 0;
-            margin: 20px 0;
+            color: var(--primary);
+            font-weight: 600;
         }
 
-        .highlight-box p {
-            color: #1e40af;
-            margin: 0;
+        /* Policy Article Cards */
+        .content-body {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .section-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 36px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 18px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .section-number {
+            width: 32px;
+            height: 32px;
+            background: var(--primary-glow);
+            color: var(--primary);
+            font-weight: 700;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             font-size: 0.95rem;
         }
 
-        .disclaimer-box {
+        .section-card h2 {
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: var(--text-main);
+            letter-spacing: -0.01em;
+            margin: 0;
+        }
+
+        .section-card h3 {
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: var(--text-main);
+            margin: 20px 0 8px;
+        }
+
+        .section-card p {
+            color: var(--text-secondary);
+            font-size: 0.975rem;
+            line-height: 1.7;
+            margin-bottom: 14px;
+        }
+
+        .section-card ul {
+            padding-left: 20px;
+            margin-bottom: 16px;
+            color: var(--text-secondary);
+        }
+
+        .section-card li {
+            margin-bottom: 8px;
+            font-size: 0.975rem;
+        }
+
+        .section-card li strong {
+            color: var(--text-main);
+        }
+
+        /* Callout Boxes */
+        .callout {
+            border-radius: var(--radius-md);
+            padding: 18px 22px;
+            margin: 20px 0;
+            display: flex;
+            gap: 16px;
+            align-items: flex-start;
+        }
+
+        .callout-icon {
+            font-size: 1.25rem;
+            line-height: 1.5;
+        }
+
+        .callout-warning {
             background: #fffbeb;
             border-left: 4px solid #f59e0b;
-            padding: 16px 20px;
-            border-radius: 0 var(--radius-md) var(--radius-md) 0;
-            margin: 20px 0;
-        }
-
-        .disclaimer-box p {
             color: #92400e;
+        }
+        .callout-warning .callout-icon { color: #f59e0b; }
+
+        .callout-info {
+            background: #f0f9ff;
+            border-left: 4px solid #0284c7;
+            color: #0369a1;
+        }
+        .callout-info .callout-icon { color: #0284c7; }
+
+        .callout-success {
+            background: #f0fdf4;
+            border-left: 4px solid #16a34a;
+            color: #15803d;
+        }
+        .callout-success .callout-icon { color: #16a34a; }
+
+        .callout p {
             margin: 0;
-            font-size: 0.95rem;
+            font-size: 0.925rem;
+            color: inherit;
         }
 
-        .contact-card {
-            background: linear-gradient(to bottom right, #f8fafc, #eff6ff);
-            border: 1px solid #dbeafe;
+        /* Data Matrix Table */
+        .table-responsive {
+            overflow-x: auto;
+            margin: 18px 0;
             border-radius: var(--radius-md);
-            padding: 20px;
-            margin-top: 20px;
+            border: 1px solid var(--border);
         }
 
-        .contact-item {
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.9rem;
+        }
+
+        th {
+            background: var(--bg-subtle);
+            color: var(--text-main);
+            font-weight: 600;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        td {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-secondary);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Contact Details Card */
+        .contact-box {
+            background: linear-gradient(135deg, #f8fafc 0%, #eff6ff 100%);
+            border: 1px solid #bfdbfe;
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            margin-top: 14px;
+        }
+
+        .contact-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin-top: 16px;
+        }
+
+        .contact-entry {
             display: flex;
             align-items: center;
-            gap: 10px;
-            margin-top: 8px;
-            color: #1e293b;
-            font-weight: 500;
+            gap: 12px;
         }
 
-        a {
+        .contact-icon-bubble {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #ffffff;
+            border: 1px solid #dbeafe;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             color: var(--primary);
-            text-decoration: none;
-            font-weight: 500;
+            box-shadow: var(--shadow-sm);
         }
 
-        a:hover {
+        .contact-entry strong {
+            display: block;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .contact-entry span, .contact-entry a {
+            font-size: 0.95rem;
+            color: var(--text-main);
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .contact-entry a:hover {
+            color: var(--primary);
             text-decoration: underline;
         }
 
+        /* Footer */
         footer {
-            text-align: center;
-            padding: 30px 20px;
-            color: var(--text-muted);
-            font-size: 0.875rem;
-            border-top: 1px solid var(--border);
             background: #ffffff;
+            border-top: 1px solid var(--border);
+            padding: 40px 24px;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            text-align: center;
         }
 
-        @media (max-width: 640px) {
-            h1 {
-                font-size: 2rem;
+        .footer-container {
+            max-width: 1140px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 20px;
+            list-style: none;
+        }
+
+        .footer-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .footer-links a:hover {
+            color: var(--primary);
+        }
+
+        /* Toast notification */
+        #toast {
+            visibility: hidden;
+            min-width: 250px;
+            background-color: #0f172a;
+            color: #fff;
+            text-align: center;
+            border-radius: 9999px;
+            padding: 12px 24px;
+            position: fixed;
+            z-index: 1000;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.875rem;
+            box-shadow: var(--shadow-lg);
+            opacity: 0;
+            transition: opacity 0.3s, visibility 0.3s;
+        }
+
+        #toast.show {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        /* Responsive Breakpoints */
+        @media (max-width: 900px) {
+            .layout-container {
+                grid-template-columns: 1fr;
             }
-            .card {
+            .sidebar {
+                display: none;
+            }
+            .hero h1 {
+                font-size: 2.4rem;
+            }
+            .hero p.lead {
+                font-size: 1.05rem;
+            }
+            .section-card {
                 padding: 24px;
             }
         }
@@ -219,114 +610,312 @@
 </head>
 <body>
 
-    <header>
-        <div class="header-content">
-            <span class="badge">Official Legal Document</span>
-            <h1>Privacy Policy</h1>
-            <p class="subtitle">DermaSense - AI Skin Health & Wellness Application</p>
-            <p class="last-updated">Last Updated: October 5, 2026</p>
+    <!-- Sticky Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="#" class="brand-logo">
+                <div class="brand-icon"><i class="fa-solid fa-heart-pulse"></i></div>
+                <span>DermaSense</span>
+            </a>
+            <div class="nav-actions">
+                <button class="btn-outline" onclick="copyPolicyLink()">
+                    <i class="fa-regular fa-copy"></i>
+                    <span>Copy Link</span>
+                </button>
+                <a href="https://github.com/subiksenvs/DermaSense" target="_blank" rel="noopener" class="btn-outline">
+                    <i class="fa-brands fa-github"></i>
+                    <span>GitHub</span>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Header -->
+    <header class="hero">
+        <div class="hero-container">
+            <div class="pill-badge">
+                <i class="fa-solid fa-shield-halved"></i> Official Privacy Policy
+            </div>
+            <h1>Privacy & Data Protection</h1>
+            <p class="lead">How DermaSense protects your privacy, handles AI scan data, and gives you total control over your health information.</p>
+            <div class="meta-tags">
+                <div class="meta-item"><i class="fa-solid fa-box"></i> Package: <strong>com.dermasense.app</strong></div>
+                <div class="meta-item"><i class="fa-regular fa-calendar-check"></i> Effective Date: <strong>October 5, 2026</strong></div>
+                <div class="meta-item"><i class="fa-solid fa-globe"></i> Version: <strong>1.0.0</strong></div>
+            </div>
         </div>
     </header>
 
-    <main class="container">
-        <article class="card">
-            <h2>1. Introduction</h2>
-            <p>Welcome to <strong>DermaSense</strong> ("we," "our," or "us"). We are committed to protecting your privacy and ensuring transparency about how your personal information and health-related data are handled. This Privacy Policy explains how our application (Package ID: <code>com.dermasense.app</code>) collects, uses, stores, and protects your information when you use our mobile application and related services.</p>
+    <!-- 4 Privacy Pillars -->
+    <section class="pillars-grid">
+        <div class="pillar-card">
+            <div class="pillar-icon icon-blue"><i class="fa-solid fa-lock"></i></div>
+            <h3>Never Sold to Advertisers</h3>
+            <p>Your photos, scans, and personal data will never be sold, rented, or traded to data brokers or advertisers.</p>
+        </div>
+        <div class="pillar-card">
+            <div class="pillar-icon icon-teal"><i class="fa-solid fa-microchip"></i></div>
+            <h3>Private AI Analysis</h3>
+            <p>Skin condition assessments are executed through encrypted and access-restricted private AI inference models.</p>
+        </div>
+        <div class="pillar-card">
+            <div class="pillar-icon icon-purple"><i class="fa-solid fa-location-dot"></i></div>
+            <h3>On-Demand Location</h3>
+            <p>Location access is solely used when searching for nearby verified clinics and is never tracked in the background.</p>
+        </div>
+        <div class="pillar-card">
+            <div class="pillar-icon icon-amber"><i class="fa-solid fa-trash-can"></i></div>
+            <h3>Right to Complete Erasure</h3>
+            <p>Delete your account and all associated scan history at any time with one click from your profile settings.</p>
+        </div>
+    </section>
 
-            <div class="disclaimer-box">
-                <p><strong>Medical Disclaimer:</strong> DermaSense is designed for educational, cosmetic skin wellness, and informational tracking purposes only. It is NOT a medical diagnostic device and does not substitute for professional medical advice, diagnosis, or clinical treatment.</p>
-            </div>
-
-            <h2>2. Information We Collect</h2>
-            <p>To provide skin analysis, personalized routines, and nearby doctor discovery, we collect the following types of information:</p>
-
-            <h3>A. Account & Profile Information</h3>
-            <ul>
-                <li><strong>Personal Identifiers:</strong> Name, email address, and profile settings created during authentication.</li>
-                <li><strong>Skin Profile:</strong> Self-reported skin type, sensitivity levels, age group, and skincare goals.</li>
+    <!-- Main Layout -->
+    <div class="layout-container">
+        
+        <!-- Sticky TOC -->
+        <aside class="sidebar">
+            <div class="sidebar-title">Contents</div>
+            <ul class="toc-list">
+                <li><a href="#section-overview" class="toc-link"><i class="fa-solid fa-angle-right"></i> 1. Overview & Disclaimer</a></li>
+                <li><a href="#section-collection" class="toc-link"><i class="fa-solid fa-angle-right"></i> 2. Information We Collect</a></li>
+                <li><a href="#section-usage" class="toc-link"><i class="fa-solid fa-angle-right"></i> 3. How We Use Data</a></li>
+                <li><a href="#section-thirdparty" class="toc-link"><i class="fa-solid fa-angle-right"></i> 4. Third-Party Infrastructure</a></li>
+                <li><a href="#section-security" class="toc-link"><i class="fa-solid fa-angle-right"></i> 5. Data Security & Storage</a></li>
+                <li><a href="#section-deletion" class="toc-link"><i class="fa-solid fa-angle-right"></i> 6. Retention & Deletion</a></li>
+                <li><a href="#section-children" class="toc-link"><i class="fa-solid fa-angle-right"></i> 7. Children's Privacy</a></li>
+                <li><a href="#section-contact" class="toc-link"><i class="fa-solid fa-angle-right"></i> 8. Contact & Inquiries</a></li>
             </ul>
+        </aside>
 
-            <h3>B. Skin Images & AI Scan Data</h3>
-            <ul>
-                <li><strong>Photographs:</strong> Images of skin concerns captured or uploaded through your camera or photo gallery for AI analysis.</li>
-                <li><strong>Analysis Metrics:</strong> AI-generated health metrics including skin hydration, texture quality, redness, pore dilation, eye bags, and firmness indicators.</li>
-            </ul>
+        <!-- Main Articles -->
+        <main class="content-body">
 
-            <h3>C. Location Information</h3>
-            <ul>
-                <li><strong>Approximate / Precise Location:</strong> Collected only with your explicit permission to help you find nearby verified dermatologists, skincare clinics, and medical centers. Location data is never used to track your background movements.</li>
-            </ul>
-
-            <h3>D. Device and Usage Data</h3>
-            <ul>
-                <li><strong>Technical Information:</strong> Device model, operating system version, crash reports, and app performance analytics to ensure stability.</li>
-            </ul>
-
-            <h2>3. How We Use Your Information</h2>
-            <p>We process your data for the following essential purposes:</p>
-            <ul>
-                <li>To perform visual skin analysis and generate instant wellness insights.</li>
-                <li>To recommend customized daily morning and evening skincare regimens.</li>
-                <li>To enable visual tracking of skin changes and improvement over time.</li>
-                <li>To locate and display healthcare specialists and clinics near your current location.</li>
-                <li>To maintain account security and provide customer support.</li>
-            </ul>
-
-            <div class="highlight-box">
-                <p><strong>Our Promise:</strong> We never sell, rent, or trade your personal data, skin photographs, or health metrics to third-party advertisers or data brokers.</p>
-            </div>
-
-            <h2>4. Third-Party Services & Infrastructure</h2>
-            <p>DermaSense uses industry-standard third-party providers for secure infrastructure:</p>
-            <ul>
-                <li><strong>Google Firebase:</strong> Used for secure user authentication, database management, and cloud storage.</li>
-                <li><strong>OpenStreetMap:</strong> Used to render maps and specialist clinic locations.</li>
-                <li><strong>Secure Cloud Inference:</strong> Private endpoints with TLS encryption to securely process AI analysis requests.</li>
-            </ul>
-
-            <h2>5. Data Security & Storage</h2>
-            <p>We apply robust security measures to protect your sensitive data:</p>
-            <ul>
-                <li><strong>Encryption in Transit:</strong> All data transmitted between the mobile app and our servers is secured using modern HTTPS/TLS 1.3 encryption.</li>
-                <li><strong>Encrypted Storage:</strong> Account credentials and scan logs are stored in secure, access-controlled cloud environments.</li>
-            </ul>
-
-            <h2>6. Data Retention & Your Rights</h2>
-            <p>You have full control over your personal data:</p>
-            <ul>
-                <li><strong>Access and Export:</strong> You may request a copy of your stored skin analysis logs.</li>
-                <li><strong>Account & Data Deletion:</strong> You can delete your account and associated scan history at any time directly in the app profile settings or by sending an email request to our support team.</li>
-            </ul>
-
-            <h2>7. Children's Privacy</h2>
-            <p>DermaSense is not intended for use by children under the age of 13 (or 16 depending on jurisdiction). We do not knowingly collect personal information from children.</p>
-
-            <h2>8. Changes to This Privacy Policy</h2>
-            <p>We may update this Privacy Policy from time to time. Any changes will be posted on this page with an updated "Last Updated" date.</p>
-
-            <h2>9. Contact Us</h2>
-            <p>If you have any questions, feedback, or requests regarding this Privacy Policy or your data, please contact us at:</p>
-            
-            <div class="contact-card">
-                <div class="contact-item">
-                    <strong>App Name:</strong> DermaSense (<code>com.dermasense.app</code>)
+            <!-- 1. Overview -->
+            <section class="section-card" id="section-overview">
+                <div class="section-header">
+                    <div class="section-number">1</div>
+                    <h2>Overview & Medical Disclaimer</h2>
                 </div>
-                <div class="contact-item">
-                    <strong>Developer:</strong> Subiksen V S
-                </div>
-                <div class="contact-item">
-                    <strong>Email:</strong> <a href="mailto:subiksen.v.s@gmail.com">subiksen.v.s@gmail.com</a>
-                </div>
-                <div class="contact-item">
-                    <strong>Project Repository:</strong> <a href="https://github.com/subiksenvs/DermaSense" target="_blank" rel="noopener">github.com/subiksenvs/DermaSense</a>
-                </div>
-            </div>
-        </article>
-    </main>
+                <p>Welcome to <strong>DermaSense</strong> ("we," "our," or "us"). We build AI-driven skin wellness and tracking technologies to help individuals better understand their skin conditions, maintain personalized skincare routines, and connect with healthcare professionals.</p>
+                <p>This Privacy Policy applies to the <strong>DermaSense Mobile Application</strong> (Application ID: <code>com.dermasense.app</code>) and related API endpoints.</p>
 
+                <div class="callout callout-warning">
+                    <div class="callout-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                    <div>
+                        <p><strong>Important Medical Disclaimer:</strong> DermaSense is intended for educational, cosmetic skin wellness, and informational tracking purposes only. It is <strong>NOT</strong> a certified medical diagnostic device and does not diagnose, cure, mitigate, treat, or prevent any disease or skin condition. Always seek the advice of a board-certified dermatologist or qualified healthcare provider with any medical questions.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 2. Information We Collect -->
+            <section class="section-card" id="section-collection">
+                <div class="section-header">
+                    <div class="section-number">2</div>
+                    <h2>Information We Collect</h2>
+                </div>
+                <p>To provide high-accuracy visual analysis, routine tracking, and localized clinic suggestions, we collect the following categories of information:</p>
+
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Category</th>
+                                <th>Data Elements</th>
+                                <th>Purpose</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Account & Identity</strong></td>
+                                <td>Name, Email Address, Account Password Hash, User ID</td>
+                                <td>Authentication, profile management, and secure account synchronization.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Skin Photos & Scans</strong></td>
+                                <td>User-captured photos, skin metric heatmaps, analysis timestamps</td>
+                                <td>AI evaluation of hydration, pores, redness, texture, eye bags, firmness, and radiance.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Location Data</strong></td>
+                                <td>Approximate or precise GPS coordinates (only when requested)</td>
+                                <td>Finding and displaying nearby dermatologists and medical facilities.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Technical & Diagnostics</strong></td>
+                                <td>Device model, OS version, crash reports, performance metrics</td>
+                                <td>Ensuring app stability, fixing bugs, and optimizing inference speed.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="callout callout-info">
+                    <div class="callout-icon"><i class="fa-solid fa-camera"></i></div>
+                    <div>
+                        <p><strong>Camera & Gallery Access:</strong> We request camera and photo storage permissions only when you take a photo for skin analysis or upload a profile picture. Photos are processed exclusively for your wellness reports.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 3. How We Use Information -->
+            <section class="section-card" id="section-usage">
+                <div class="section-header">
+                    <div class="section-number">3</div>
+                    <h2>How We Use Your Information</h2>
+                </div>
+                <p>We process collected data solely to deliver, enhance, and secure your experience:</p>
+                <ul>
+                    <li><strong>AI Model Inference:</strong> Processing skin scans through computer vision pipelines to generate visual metric maps.</li>
+                    <li><strong>Personalized Skincare Routines:</strong> Formulating customized AM/PM skincare habits based on your skin profile.</li>
+                    <li><strong>Historical Tracking:</strong> Enabling you to compare historical scan results and track changes over weeks and months.</li>
+                    <li><strong>Doctor & Clinic Discovery:</strong> Locating certified skincare specialists and clinics near your current position.</li>
+                    <li><strong>Service Reliability:</strong> Identifying software exceptions and maintaining system uptime.</li>
+                </ul>
+
+                <div class="callout callout-success">
+                    <div class="callout-icon"><i class="fa-solid fa-circle-check"></i></div>
+                    <div>
+                        <p><strong>No Commercial Data Sharing:</strong> We do not sell your personal information or biometric scans to third-party advertisers, pharmaceutical companies, or data brokers.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 4. Third-Party Infrastructure -->
+            <section class="section-card" id="section-thirdparty">
+                <div class="section-header">
+                    <div class="section-number">4</div>
+                    <h2>Third-Party Services & Infrastructure</h2>
+                </div>
+                <p>DermaSense integrates trusted cloud infrastructure partners that adhere to stringent data protection standards:</p>
+                <ul>
+                    <li><strong>Google Firebase / Google Cloud Platform:</strong> Provides cloud authentication, real-time database management, and encrypted storage.</li>
+                    <li><strong>OpenStreetMap:</strong> Delivers interactive map tiles and geographic point-of-interest data for locating doctors.</li>
+                    <li><strong>Private AI Inference Cluster:</strong> Proprietary backend endpoints hosted on secure cloud infrastructure utilizing TLS 1.3 encryption.</li>
+                </ul>
+            </section>
+
+            <!-- 5. Security & Storage -->
+            <section class="section-card" id="section-security">
+                <div class="section-header">
+                    <div class="section-number">5</div>
+                    <h2>Data Security & Storage</h2>
+                </div>
+                <p>We maintain multi-layered administrative, technical, and physical safeguards to defend your personal data:</p>
+                <ul>
+                    <li><strong>Encryption in Transit:</strong> 100% of network traffic between your mobile device and our backend servers is encrypted using modern HTTPS and TLS 1.3 protocol.</li>
+                    <li><strong>Encrypted Storage:</strong> User records and uploaded scan artifacts are securely encrypted at rest.</li>
+                    <li><strong>Strict Access Controls:</strong> Only authenticated services with least-privilege access keys can access data clusters.</li>
+                </ul>
+            </section>
+
+            <!-- 6. Retention & Deletion -->
+            <section class="section-card" id="section-deletion">
+                <div class="section-header">
+                    <div class="section-number">6</div>
+                    <h2>Data Retention & Right to Erasure</h2>
+                </div>
+                <p>You have full ownership of your data at all times. We retain your profile information and scan history only for as long as your account remains active.</p>
+
+                <h3>How to Delete Your Data:</h3>
+                <ul>
+                    <li><strong>In-App Deletion:</strong> Go to <code>Profile</code> ➔ <code>Account Settings</code> ➔ <code>Delete Account</code>. This action immediately purges your profile, scan history, and photos from our active databases.</li>
+                    <li><strong>Email Request:</strong> You can send an account deletion request to <a href="mailto:subiksen.v.s@gmail.com">subiksen.v.s@gmail.com</a> with the subject <em>"Data Erasure Request"</em>. We will process your request within 7 business days.</li>
+                </ul>
+            </section>
+
+            <!-- 7. Children's Privacy -->
+            <section class="section-card" id="section-children">
+                <div class="section-header">
+                    <div class="section-number">7</div>
+                    <h2>Children's Privacy</h2>
+                </div>
+                <p>DermaSense is not directed towards children under the age of 13 (or 16 in certain jurisdictions). We do not knowingly collect or solicit personal data from minors. If you believe that a minor has provided us with personal information without parental consent, please contact us immediately so we can delete the information.</p>
+            </section>
+
+            <!-- 8. Contact -->
+            <section class="section-card" id="section-contact">
+                <div class="section-header">
+                    <div class="section-number">8</div>
+                    <h2>Contact & Inquiries</h2>
+                </div>
+                <p>If you have any questions, feedback, or concerns regarding this Privacy Policy or our data handling practices, please contact us:</p>
+
+                <div class="contact-box">
+                    <h3 style="margin-top:0; color: #1e3a8a;">DermaSense Compliance & Support</h3>
+                    <div class="contact-grid">
+                        <div class="contact-entry">
+                            <div class="contact-icon-bubble"><i class="fa-solid fa-user-tie"></i></div>
+                            <div>
+                                <strong>Lead Developer</strong>
+                                <span>Subiksen V S</span>
+                            </div>
+                        </div>
+                        <div class="contact-entry">
+                            <div class="contact-icon-bubble"><i class="fa-solid fa-envelope"></i></div>
+                            <div>
+                                <strong>Direct Email</strong>
+                                <a href="mailto:subiksen.v.s@gmail.com">subiksen.v.s@gmail.com</a>
+                            </div>
+                        </div>
+                        <div class="contact-entry">
+                            <div class="contact-icon-bubble"><i class="fa-brands fa-github"></i></div>
+                            <div>
+                                <strong>Repository</strong>
+                                <a href="https://github.com/subiksenvs/DermaSense" target="_blank" rel="noopener">github.com/subiksenvs/DermaSense</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Footer -->
     <footer>
-        <p>&copy; 2026 DermaSense. All rights reserved.</p>
+        <div class="footer-container">
+            <p>&copy; 2026 DermaSense AI (<code>com.dermasense.app</code>). All rights reserved.</p>
+            <ul class="footer-links">
+                <li><a href="#section-overview">Overview</a></li>
+                <li><a href="#section-collection">Data Collection</a></li>
+                <li><a href="#section-deletion">Data Erasure</a></li>
+                <li><a href="#section-contact">Contact</a></li>
+            </ul>
+        </div>
     </footer>
 
+    <!-- Toast Notification -->
+    <div id="toast">Link copied to clipboard!</div>
+
+    <script>
+        function copyPolicyLink() {
+            navigator.clipboard.writeText(window.location.href);
+            var toast = document.getElementById("toast");
+            toast.className = "show";
+            setTimeout(function(){ toast.className = toast.className.replace("show", ""); }, 2500);
+        }
+
+        // Active link highlighting on scroll
+        const sections = document.querySelectorAll('.section-card');
+        const navLinks = document.querySelectorAll('.toc-link');
+
+        window.addEventListener('scroll', () => {
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop - 120;
+                if (pageYOffset >= sectionTop) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === `#${current}`) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
 </body>
 </html>
