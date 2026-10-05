@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/ds/ds_card.dart';
 import '../../widgets/ds/ds_button.dart';
+import '../../widgets/ds/ds_toast.dart';
 import '../../services/analysis_service.dart';
 import '../../providers/history_provider.dart';
 import '../../providers/skin_profile_provider.dart';
@@ -104,12 +105,14 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
         }
       }
 
+      final conditionsMap = metrics.map((k, v) => MapEntry(k, (v <= 1.0 ? v * 100.0 : v).toDouble()));
+
       final record = AnalysisRecord(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         date: DateTime.now(),
         overallScore: overallScore.round(),
         imagePath: '',
-        conditions: {},
+        conditions: conditionsMap,
         metrics: metrics,
       );
 
@@ -140,9 +143,7 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
       setState(() {
         _isAnalyzing = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString()), backgroundColor: AppTheme.error),
-      );
+      DSToast.showError(context, e.toString());
     }
   }
 

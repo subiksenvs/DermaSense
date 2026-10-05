@@ -4,11 +4,7 @@ import '../../theme/app_theme.dart';
 import '../../widgets/ds/ds_card.dart';
 import '../../widgets/ds/ds_avatar.dart';
 import '../../providers/skin_profile_provider.dart';
-import '../../providers/history_provider.dart';
-import 'package:fl_chart/fl_chart.dart';
-import 'package:intl/intl.dart';
 import '../settings/settings_screen.dart';
-import '../history/history_screen.dart';
 import '../../providers/auth_provider.dart';
 import '../auth/login_screen.dart';
 
@@ -35,7 +31,6 @@ class ProfileScreen extends StatelessWidget {
       ),
       body: Consumer<SkinProfileProvider>(
         builder: (context, provider, child) {
-          final historyProvider = context.watch<HistoryProvider>();
           if (provider.isLoading) {
             return const Center(child: CircularProgressIndicator(color: AppTheme.primary));
           }
@@ -112,16 +107,13 @@ class ProfileScreen extends StatelessWidget {
                   const SizedBox(height: AppTheme.space32),
 
                   // Log Out Button
-                  SizedBox(
-                    width: double.infinity,
+                  Center(
                     child: OutlinedButton.icon(
                       onPressed: () async {
                         final confirm = await showDialog<bool>(
                           context: context,
                           builder: (context) => AlertDialog(
-                            backgroundColor: AppTheme.surfaceElevated,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                            title: const Text("Log Out", style: TextStyle(fontWeight: FontWeight.bold)),
+                            title: const Text("Log Out"),
                             content: const Text("Are you sure you want to log out of DermaSense?"),
                             actions: [
                               TextButton(
@@ -153,20 +145,20 @@ class ProfileScreen extends StatelessWidget {
                           }
                         }
                       },
-                      icon: const Icon(Icons.logout_rounded, color: AppTheme.error, size: 20),
+                      icon: const Icon(Icons.logout_rounded, color: AppTheme.primary, size: 20),
                       label: const Text(
                         "Log Out",
                         style: TextStyle(
-                          color: AppTheme.error,
+                          color: AppTheme.primary,
                           fontWeight: FontWeight.w700,
                           fontSize: 16,
                         ),
                       ),
                       style: OutlinedButton.styleFrom(
-                        side: BorderSide(color: AppTheme.error.withValues(alpha: 0.5), width: 1.5),
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                        backgroundColor: AppTheme.error.withValues(alpha: 0.06),
+                        side: BorderSide(color: AppTheme.primary.withValues(alpha: 0.5), width: 1.5),
+                        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
+                        backgroundColor: AppTheme.primary.withValues(alpha: 0.06),
                       ),
                     ),
                   ),

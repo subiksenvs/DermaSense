@@ -1,10 +1,13 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import '../../widgets/glass_app_bar_title.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../models/user_profile.dart';
 import '../../providers/skin_profile_provider.dart';
+import '../../theme/app_theme.dart';
+import '../../widgets/ds/ds_toast.dart';
 
 class EditProfileScreen extends StatefulWidget {
   final UserProfile profile;
@@ -22,7 +25,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   late TextEditingController _emailController;
   late TextEditingController _ageController;
   late TextEditingController _locationController;
-  late TextEditingController _budgetController;
 
   String? _selectedSkinType;
   List<String> _selectedConcerns = [];
@@ -59,9 +61,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _locationController = TextEditingController(
       text: widget.profile.location ?? '',
     );
-    _budgetController = TextEditingController(
-      text: widget.profile.budget?.toString() ?? '',
-    );
 
     _selectedSkinType = widget.profile.skinType;
     if (!_skinTypes.contains(_selectedSkinType)) {
@@ -82,7 +81,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _emailController.dispose();
     _ageController.dispose();
     _locationController.dispose();
-    _budgetController.dispose();
     super.dispose();
   }
 
@@ -119,12 +117,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     } catch (e) {
       setState(() => _isUploading = false);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to pick or upload image: $e'),
-            backgroundColor: Theme.of(context).colorScheme.error,
-          ),
-        );
+        DSToast.showError(context, 'Failed to upload image: $e');
       }
     } finally {
       setState(() {
@@ -241,9 +234,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     final updatedProfile = widget.profile.copyWith(
       fullName: _nameController.text.trim(),
       email: _emailController.text.trim(),
-      age: int.tryParse(_ageController.text.trim()),
-      location: _locationController.text.trim(),
-      budget: double.tryParse(_budgetController.text.trim()),
+      location: _locationController.text.trim().isEmpty
+          ? null
+          : _locationController.text.trim(),
       skinType: _selectedSkinType,
       skinConcerns: _selectedConcerns,
       profileImageUrl: _profileImageUrl,
@@ -259,20 +252,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     if (!mounted) return;
 
     if (success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Profile updated successfully'),
-          backgroundColor: Colors.green,
-        ),
-      );
+      DSToast.showSuccess(context, 'Profile updated successfully');
       Navigator.pop(context);
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to update profile'),
-          backgroundColor: Theme.of(context).colorScheme.error,
-        ),
-      );
+      DSToast.showError(context, 'Failed to update profile');
     }
   }
 
@@ -280,7 +263,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Widget build(BuildContext context) {
     bool hasImage = _profileImageUrl != null && _profileImageUrl!.isNotEmpty;
     return Scaffold(
-      appBar: AppBar(title: const Text("Edit Profile")),
+      appBar: AppBar(
+        title: const GlassAppBarTitle(
+          icon: Icons.edit_outlined,
+          title: "Edit Profile",
+        ),
+      ),
       body: SafeArea(
         child: _isUploading
             ? const Center(child: CircularProgressIndicator())
@@ -305,16 +293,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                     height: 120,
                                     decoration: BoxDecoration(
                                       shape: BoxShape.circle,
-                                      gradient: LinearGradient(
-                                        colors: [
-                                          Theme.of(context).colorScheme.primary,
-                                          Theme.of(
-                                            context,
-                                          ).colorScheme.secondary,
-                                        ],
-                                        begin: Alignment.topLeft,
-                                        end: Alignment.bottomRight,
-                                      ),
+                                      color: AppTheme.primary,
                                     ),
                                     padding: const EdgeInsets.all(3),
                                     child: _isPickingImage
@@ -522,24 +501,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             ).colorScheme.primary,
                           );
                         }).toList(),
-                      ),
-
-                      const SizedBox(height: 32),
-                      const Text(
-                        "Preferences",
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      TextFormField(
-                        controller: _budgetController,
-                        keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(
-                          labelText: "Monthly Skincare Budget (\$)",
-                          prefixIcon: Icon(Icons.attach_money),
-                        ),
                       ),
 
                       const SizedBox(height: 48),

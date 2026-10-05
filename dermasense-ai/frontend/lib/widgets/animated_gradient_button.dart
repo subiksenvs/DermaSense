@@ -58,11 +58,7 @@ class _AnimatedGradientButtonState extends State<AnimatedGradientButton> with Si
           width: double.infinity,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12), // Match AppTheme 12px
-            gradient: const LinearGradient(
-              colors: [AppTheme.primaryColor, AppTheme.secondaryColor],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
+            color: AppTheme.primaryColor,
           ),
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 18.0),

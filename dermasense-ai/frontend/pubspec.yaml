@@ -42,7 +42,7 @@ dependencies:
   path_provider: ^2.1.6
   file_picker: ^12.0.0
   intl: ^0.20.3
-  url_launcher: ^6.3.1
+  url_launcher: ^6.3.2
   cached_network_image: ^3.4.1
   firebase_core: ^4.13.0
   firebase_auth: ^6.5.7
@@ -55,6 +55,14 @@ dependencies:
   latlong2: ^0.10.1
   flutter_markdown: ^0.7.7+1
   flutter_dotenv: ^6.0.1
+  fl_chart: ^1.2.0
+  flutter_staggered_animations: ^1.1.1
+  image: ^4.9.2
+  firebase_messaging: ^16.6.0
+  flutter_local_notifications: ^22.3.0
+  flutter_animate: ^4.5.2
+  mailer: ^7.2.0
+  share_plus: ^13.3.0
 
 dev_dependencies:
   flutter_test:
@@ -71,6 +79,9 @@ dev_dependencies:
 flutter_launcher_icons:
   android: true
   ios: true
+  web:
+    generate: true
+    image_path: "assets/images/logo.png"
   image_path: "assets/images/logo.png"
 
 # For information on the generic Dart part of this file, see the

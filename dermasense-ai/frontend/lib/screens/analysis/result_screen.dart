@@ -1,8 +1,14 @@
 import 'dart:typed_data';
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../providers/routine_provider.dart';
+import '../../providers/history_provider.dart';
+import '../../providers/skin_profile_provider.dart';
+import '../routine/routine_screen.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/ds/ds_card.dart';
+import '../../widgets/ds/ds_button.dart';
 import '../../widgets/ds/ds_progress.dart';
 
 class ResultScreen extends StatefulWidget {
@@ -150,6 +156,16 @@ class _ResultScreenState extends State<ResultScreen> {
     super.initState();
     _heatmapPageController = PageController(viewportFraction: 0.85);
     _chipsScrollController = ScrollController();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final historyProvider = context.read<HistoryProvider>();
+      final profileProvider = context.read<SkinProfileProvider>();
+      context.read<RoutineProvider>().generateRoutine(
+        historyProvider,
+        profileProvider,
+        force: true,
+      );
+    });
   }
 
   @override
@@ -433,6 +449,80 @@ class _ResultScreenState extends State<ResultScreen> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: AppTheme.space20),
               child: _buildRecommendationsCard(context, scores),
+            ),
+            const SizedBox(height: AppTheme.space24),
+
+            // CTA Card: View Personalized Skincare Routine
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppTheme.space20),
+              child: DSCard(
+                variant: DSCardVariant.elevated,
+                padding: const EdgeInsets.all(AppTheme.space20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [AppTheme.primary, AppTheme.primaryLight],
+                            ),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(
+                            Icons.auto_awesome,
+                            color: Colors.white,
+                            size: 22,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                "Daily Skincare Regimen",
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                "Custom AM & PM routine generated for this scan",
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: AppTheme.textSecondary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: double.infinity,
+                      child: DSButton(
+                        label: "View Personalized Routine",
+                        icon: Icons.calendar_month_rounded,
+                        variant: DSButtonVariant.primary,
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const RoutineScreen(),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
             const SizedBox(height: AppTheme.space40),
           ],

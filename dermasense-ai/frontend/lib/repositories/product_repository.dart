@@ -179,18 +179,7 @@ class ProductRepository {
         reasons.add('Targets your key concern: ${profile.skinConcerns.join(", ")}');
       }
 
-      // 3. Budget Fit (Medium Priority: 20 points)
-      if (profile.budget != null) {
-        if (product.price <= profile.budget!) {
-          score += 20;
-          reasons.add('Fits well within your monthly budget');
-        } else if (product.price <= profile.budget! * 1.2) {
-          score += 10;
-          reasons.add('Slightly over budget, but high value');
-        }
-      } else {
-        score += 20; // If no budget, assume it fits
-      }
+      // Budget logic removed
 
       // 4. Product Quality/Rating (Low Priority: 10 points)
       score += (product.rating / 5.0) * 10;

@@ -56,8 +56,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             duration: const Duration(milliseconds: 700),
             curve: Curves.easeInOut,
             top: _currentPage == 0 ? -100 : (_currentPage == 1 ? 0 : 100),
-            right: _currentPage % 2 == 0 ? -150 : null,
-            left: _currentPage % 2 != 0 ? -150 : null,
+            left: _currentPage % 2 == 0 
+                ? MediaQuery.of(context).size.width - 250 
+                : -150.0,
             child: Container(
               width: 400,
               height: 400,
@@ -157,18 +158,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                               duration: const Duration(milliseconds: 300),
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(20),
-                                gradient: LinearGradient(
-                                  colors:
-                                      _currentPage == onboardingData.length - 1
-                                      ? [
-                                          AppTheme.primaryColor,
-                                          AppTheme.secondaryColor,
-                                        ]
-                                      : [
-                                          AppTheme.primaryColor,
-                                          AppTheme.primaryColor,
-                                        ],
-                                ),
+                                color: AppTheme.primaryColor,
                                 boxShadow: [
                                   BoxShadow(
                                     color:

@@ -1,15 +1,22 @@
 import 'package:flutter/material.dart';
+import '../../widgets/glass_app_bar_title.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../models/product.dart';
 import '../../providers/favorites_provider.dart';
+import '../../theme/app_theme.dart';
+import '../../widgets/ds/ds_toast.dart';
 
 class ProductDetailScreen extends StatelessWidget {
   final Product product;
   final int? matchScore;
 
-  const ProductDetailScreen({super.key, required this.product, this.matchScore});
+  const ProductDetailScreen({
+    super.key,
+    required this.product,
+    this.matchScore,
+  });
 
   Future<void> _launchProductUrl(BuildContext context) async {
     final uri = Uri.parse(product.productUrl);
@@ -17,9 +24,7 @@ class ProductDetailScreen extends StatelessWidget {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     } else {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Could not open the product page.')),
-        );
+        DSToast.showError(context, 'Could not open the product page.');
       }
     }
   }
@@ -28,13 +33,19 @@ class ProductDetailScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Details"),
+        title: const GlassAppBarTitle(
+          icon: Icons.shopping_bag_outlined,
+          title: "Details",
+        ),
         actions: [
           Consumer<FavoritesProvider>(
             builder: (context, favProvider, child) {
               final isFav = favProvider.isFavorite(product.id);
               return IconButton(
-                icon: Icon(isFav ? Icons.favorite : Icons.favorite_border, color: isFav ? Colors.red : null),
+                icon: Icon(
+                  isFav ? Icons.favorite : Icons.favorite_border,
+                  color: isFav ? AppTheme.primary : null,
+                ),
                 onPressed: () => favProvider.toggleFavorite(product.id),
               );
             },
@@ -59,7 +70,9 @@ class ProductDetailScreen extends StatelessWidget {
                     width: 200,
                     height: 200,
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.primary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(24),
                     ),
                     child: const Center(child: CircularProgressIndicator()),
@@ -68,10 +81,16 @@ class ProductDetailScreen extends StatelessWidget {
                     width: 200,
                     height: 200,
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.primary.withValues(alpha: 0.1),
                       shape: BoxShape.circle,
                     ),
-                    child: Icon(Icons.shopping_bag, size: 100, color: Theme.of(context).colorScheme.primary),
+                    child: Icon(
+                      Icons.shopping_bag,
+                      size: 100,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
                   ),
                 ),
               ),
@@ -80,51 +99,99 @@ class ProductDetailScreen extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(product.brand, style: TextStyle(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.bold)),
+                Text(
+                  product.brand,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.primary,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
                 if (matchScore != null)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.2),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.secondary.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(16),
                     ),
-                    child: Text('$matchScore% Match', style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.secondary)),
+                    child: Text(
+                      '$matchScore% Match',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.secondary,
+                      ),
+                    ),
                   ),
               ],
             ),
             const SizedBox(height: 8),
-            Text(product.name, style: Theme.of(context).textTheme.displayMedium?.copyWith(fontSize: 24)),
+            Text(
+              product.name,
+              style: Theme.of(
+                context,
+              ).textTheme.displayMedium?.copyWith(fontSize: 24),
+            ),
             const SizedBox(height: 16),
             Row(
               children: [
-                Text('\$${product.price.toStringAsFixed(2)}', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                Text(
+                  '\$${product.price.toStringAsFixed(2)}',
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
                 const SizedBox(width: 16),
                 Icon(Icons.star, color: Colors.orange.shade400, size: 20),
                 const SizedBox(width: 4),
-                Text('${product.rating}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                Text(
+                  '${product.rating}',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 24),
-            Text(product.description, style: const TextStyle(fontSize: 16, height: 1.5)),
+            Text(
+              product.description,
+              style: const TextStyle(fontSize: 16, height: 1.5),
+            ),
             const SizedBox(height: 32),
-            
-            const Text("Key Ingredients", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+
+            const Text(
+              "Key Ingredients",
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+            ),
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,
-              children: product.keyIngredients.map((ing) => Chip(label: Text(ing))).toList(),
+              children: product.keyIngredients
+                  .map((ing) => Chip(label: Text(ing)))
+                  .toList(),
             ),
             const SizedBox(height: 24),
 
-            const Text("Pros", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+            const Text(
+              "Pros",
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+            ),
             const SizedBox(height: 8),
-            ...product.pros.map((p) => _buildBulletPoint(p, Colors.green)),
+            ...product.pros.map((p) => _buildBulletPoint(p, AppTheme.success)),
             const SizedBox(height: 16),
 
-            const Text("Cons", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+            const Text(
+              "Cons",
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+            ),
             const SizedBox(height: 8),
-            ...product.cons.map((c) => _buildBulletPoint(c, Colors.red)),
-            
+            ...product.cons.map((c) => _buildBulletPoint(c, AppTheme.error)),
+
             const SizedBox(height: 48),
             SizedBox(
               width: double.infinity,

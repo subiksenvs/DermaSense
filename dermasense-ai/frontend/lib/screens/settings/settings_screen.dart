@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../widgets/ds/ds_card.dart';
-import '../../widgets/glass_app_bar_title.dart';
+import '../../widgets/ds/ds_toast.dart';
 import 'package:provider/provider.dart';
-import '../../providers/auth_provider.dart';
 import '../../theme/app_theme.dart';
-import '../auth/login_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider;
 import '../../providers/history_provider.dart';
+import 'dart:io';
+import 'package:intl/intl.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -17,8 +19,86 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
+  Future<void> _downloadData() async {
+    final historyProvider = Provider.of<HistoryProvider>(context, listen: false);
+    final records = historyProvider.records;
 
+    if (records.isEmpty) {
+      if (mounted) {
+        DSToast.showInfo(context, 'No analysis data available to download.');
+      }
+      return;
+    }
 
+    if (mounted) {
+      DSToast.showInfo(context, 'Preparing your data export...');
+    }
+
+    try {
+      // 1. Collect all unique keys for conditions and metrics
+      Set<String> conditionKeys = {};
+      Set<String> metricKeys = {};
+      
+      for (var record in records) {
+        conditionKeys.addAll(record.conditions.keys);
+        metricKeys.addAll(record.metrics.keys);
+      }
+
+      List<String> sortedConditionKeys = conditionKeys.toList()..sort();
+      List<String> sortedMetricKeys = metricKeys.toList()..sort();
+
+      // 2. Build CSV header
+      StringBuffer csvBuffer = StringBuffer();
+      
+      List<String> header = [
+        'Scan ID',
+        'Date',
+        'Overall Score',
+      ];
+      header.addAll(sortedConditionKeys.map((k) => 'Condition: $k'));
+      header.addAll(sortedMetricKeys.map((k) => 'Metric: $k'));
+      
+      csvBuffer.writeln(header.map((e) => '"$e"').join(','));
+
+      // 3. Build rows
+      final dateFormat = DateFormat('yyyy-MM-dd HH:mm:ss');
+      
+      for (var record in records) {
+        List<String> row = [
+          record.id,
+          dateFormat.format(record.date),
+          record.overallScore.toString(),
+        ];
+        
+        for (var key in sortedConditionKeys) {
+          row.add(record.conditions.containsKey(key) ? record.conditions[key]!.toStringAsFixed(2) : '');
+        }
+        
+        for (var key in sortedMetricKeys) {
+          row.add(record.metrics.containsKey(key) ? record.metrics[key]!.toStringAsFixed(2) : '');
+        }
+        
+        csvBuffer.writeln(row.map((e) => '"$e"').join(','));
+      }
+
+      // 4. Save to temp file
+      final directory = await getTemporaryDirectory();
+      final filePath = '${directory.path}/DermaSense_Analysis_Data.csv';
+      final file = File(filePath);
+      await file.writeAsString(csvBuffer.toString());
+
+      // 5. Share file
+      await Share.shareXFiles(
+        [XFile(filePath)],
+        subject: 'DermaSense Analysis Data',
+        text: 'Here is your exported DermaSense skin analysis data.',
+      );
+    } catch (e) {
+      if (mounted) {
+        DSToast.showError(context, 'Failed to export data: $e');
+      }
+    }
+  }
   void _showChangePasswordDialog() {
     final TextEditingController passwordController = TextEditingController();
     final TextEditingController confirmPasswordController = TextEditingController();
@@ -30,18 +110,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setState) {
             return AlertDialog(
-              backgroundColor: Theme.of(context).colorScheme.surface,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(24),
-              ),
-              title: const Text(
-                "Change Password",
-                style: TextStyle(
-                  fontFamily: 'Inter',
-                  fontWeight: FontWeight.bold,
-                  fontSize: 22,
-                ),
-              ),
+              title: const Text("Change Password"),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -90,15 +159,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         ? null
                         : () async {
                             if (passwordController.text.length < 6) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Password must be at least 6 characters')),
-                              );
+                              DSToast.showError(context, 'Password must be at least 6 characters');
                               return;
                             }
                             if (passwordController.text != confirmPasswordController.text) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Passwords do not match')),
-                              );
+                              DSToast.showError(context, 'Passwords do not match');
                               return;
                             }
                             setState(() {
@@ -109,16 +174,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               if (dialogContext.mounted) {
                                 Navigator.pop(dialogContext);
                                 if (context.mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Password updated successfully!')),
-                                  );
+                                  DSToast.showSuccess(context, 'Password updated successfully!');
                                 }
                               }
                             } catch (e) {
                               if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text('Error: $e')),
-                                );
+                                DSToast.showError(context, 'Error: $e');
                               }
                             } finally {
                               if (mounted) {
@@ -164,11 +225,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     title: const Text("Download My Data", style: TextStyle(fontWeight: FontWeight.w500)),
                     leading: Icon(Icons.download, color: Theme.of(context).colorScheme.primary),
                     trailing: const Icon(Icons.chevron_right, size: 20),
-                    onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Preparing your data for download...')),
-                      );
-                    },
+                    onTap: _downloadData,
                   ),
                   const Divider(height: 1),
                   ListTile(
@@ -196,7 +253,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       if (confirm == true && context.mounted) {
                         await Provider.of<HistoryProvider>(context, listen: false).clearHistory();
                         if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Analysis history deleted.')));
+                          DSToast.showSuccess(context, 'Analysis history deleted.');
                         }
                       }
                     },
@@ -205,51 +262,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ).animate().fade(duration: 400.ms).slideY(begin: 0.1, end: 0, curve: Curves.easeOutQuart),
             
-            const SizedBox(height: 32),
-            _buildSectionHeader("Account"),
-            DSCard(
-              variant: DSCardVariant.glass,
-              padding: EdgeInsets.zero,
-              child: Column(
-                children: [
-                  ListTile(
-                    title: const Text("Delete Account", style: TextStyle(color: AppTheme.error, fontWeight: FontWeight.w600)),
-                    leading: const Icon(Icons.person_remove, color: AppTheme.error),
-                    onTap: () async {
-                      final confirm = await showDialog<bool>(
-                        context: context,
-                        builder: (context) => AlertDialog(
-                          title: const Text("Delete Account"),
-                          content: const Text("Are you absolutely sure you want to delete your account? All your data will be permanently removed."),
-                          actions: [
-                            TextButton(onPressed: () => Navigator.pop(context, false), child: const Text("Cancel")),
-                            TextButton(onPressed: () => Navigator.pop(context, true), child: const Text("Delete", style: TextStyle(color: AppTheme.error))),
-                          ],
-                        ),
-                      );
-                      if (confirm == true && context.mounted) {
-                        try {
-                          await FirebaseAuth.instance.currentUser?.delete();
-                          final authProvider = Provider.of<AuthProvider>(context, listen: false);
-                          await authProvider.signOut();
-                          if (context.mounted) {
-                            Navigator.pushAndRemoveUntil(
-                              context,
-                              MaterialPageRoute(builder: (context) => const LoginScreen()),
-                              (route) => false,
-                            );
-                          }
-                        } catch (e) {
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error deleting account: $e')));
-                          }
-                        }
-                      }
-                    },
-                  ),
-                ],
-              ),
-            ).animate().fade(duration: 500.ms, delay: 100.ms).slideY(begin: 0.1, end: 0, curve: Curves.easeOutQuart),
+
           ],
         ),
       ),

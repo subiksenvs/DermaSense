@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'result_screen.dart';
 import '../../services/analysis_service.dart';
-import '../../theme/app_theme.dart';
+import '../../widgets/ds/ds_toast.dart';
 
 class LiveCameraScreen extends StatefulWidget {
   const LiveCameraScreen({super.key});
@@ -64,9 +64,7 @@ class _LiveCameraScreenState extends State<LiveCameraScreen>
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Failed to initialize camera: $e")),
-        );
+        DSToast.showError(context, "Failed to initialize camera: $e");
         Navigator.pop(context);
       }
     }
@@ -109,12 +107,7 @@ class _LiveCameraScreenState extends State<LiveCameraScreen>
         setState(() {
           _isAnalyzing = false;
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("Analysis failed: $e"),
-            backgroundColor: AppTheme.error,
-          ),
-        );
+        DSToast.showError(context, "Analysis failed: $e");
       }
     }
   }

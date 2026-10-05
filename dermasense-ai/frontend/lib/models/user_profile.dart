@@ -5,7 +5,6 @@ class UserProfile {
   int? age;
   String? skinType;
   List<String> skinConcerns;
-  double? budget;
   String? location;
   final String? profileImageUrl;
 
@@ -16,7 +15,6 @@ class UserProfile {
     this.age,
     this.skinType,
     this.skinConcerns = const [],
-    this.budget,
     this.location,
     this.profileImageUrl,
   });
@@ -37,7 +35,6 @@ class UserProfile {
       'age': age,
       'skinType': skinType,
       'skinConcerns': skinConcerns,
-      'budget': budget,
       'location': location,
       'profileImageUrl': profileImageUrl,
     };
@@ -50,8 +47,7 @@ class UserProfile {
       email: json['email'] ?? '',
       age: json['age'],
       skinType: json['skinType'],
-      skinConcerns: List<String>.from(json['skinConcerns'] ?? []),
-      budget: json['budget']?.toDouble(),
+      skinConcerns: (json['skinConcerns'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
       location: json['location'],
       profileImageUrl: json['profileImageUrl'],
     );
@@ -64,8 +60,7 @@ class UserProfile {
       email: data['email'] ?? '',
       age: data['age'] ?? 0,
       skinType: data['skinType'] ?? 'Normal',
-      skinConcerns: List<String>.from(data['skinConcerns'] ?? []),
-      budget: data['budget']?.toDouble(),
+      skinConcerns: (data['skinConcerns'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
       location: data['location'],
       profileImageUrl: data['profileImageUrl'],
     );
@@ -78,7 +73,6 @@ class UserProfile {
       'age': age,
       'skinType': skinType,
       'skinConcerns': skinConcerns,
-      'budget': budget,
       'location': location,
       'profileImageUrl': profileImageUrl,
     };
@@ -91,7 +85,6 @@ class UserProfile {
     int? age,
     String? skinType,
     List<String>? skinConcerns,
-    double? budget,
     String? location,
     String? profileImageUrl,
   }) {
@@ -102,7 +95,6 @@ class UserProfile {
       age: age ?? this.age,
       skinType: skinType ?? this.skinType,
       skinConcerns: skinConcerns ?? this.skinConcerns,
-      budget: budget ?? this.budget,
       location: location ?? this.location,
       profileImageUrl: profileImageUrl ?? this.profileImageUrl,
     );
