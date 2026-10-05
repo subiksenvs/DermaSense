@@ -28,7 +28,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:509696574029:android:062a5f1cb06c8b10f55204",
         "android_client_info": {
-          "package_name": "com.example.dermasense"
+          "package_name": "com.dermasense.app"
         }
       },
       "oauth_client": [],

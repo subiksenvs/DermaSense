@@ -349,7 +349,7 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
                               children: [
                                 TileLayer(
                                   urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                                  userAgentPackageName: 'com.example.dermasense',
+                                  userAgentPackageName: 'com.dermasense.app',
                                 ),
                                 MarkerLayer(
                                   markers: [

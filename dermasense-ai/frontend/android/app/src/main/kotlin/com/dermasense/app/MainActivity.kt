@@ -1,4 +1,4 @@
-package com.example.dermasense
+package com.dermasense.app
 
 import io.flutter.embedding.android.FlutterActivity
 
